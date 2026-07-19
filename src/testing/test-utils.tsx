@@ -26,13 +26,18 @@ export const loginAsUser = async (user: any) => {
 };
 
 export const waitForLoadingToFinish = () =>
-  waitForElementToBeRemoved(
-    () => [
+  Promise.resolve().then(() => {
+    const getLoaders = () => [
       ...screen.queryAllByTestId(/loading/i),
       ...screen.queryAllByText(/loading/i),
-    ],
-    { timeout: 4000 },
-  );
+    ];
+
+    if (getLoaders().length === 0) {
+      return;
+    }
+
+    return waitForElementToBeRemoved(getLoaders, { timeout: 4000 });
+  });
 
 const initializeUser = async (user: any) => {
   if (typeof user === 'undefined') {
