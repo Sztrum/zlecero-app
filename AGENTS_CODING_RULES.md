@@ -1,7 +1,7 @@
 # AGENTS_CODING_RULES.md
 
 ## Version
-v2.0.0
+v2.2.0
 
 ## Scope
 Portable coding/style/implementation standards for React, TypeScript, and frontend application work.
@@ -51,8 +51,9 @@ Read documents in this exact order before implementation:
 ## Components, Styling, And Accessibility
 - Build shared UI primitives in the project component library and wrap third-party primitives before using them broadly.
 - Prefer battle-tested headless or accessible component libraries for dialogs, menus, popovers, tabs, tooltips, and similar interaction-heavy UI.
-- Keep styling consistent with the selected project styling system; do not introduce a second styling paradigm without explicit approval.
+- Keep styling consistent with the selected project styling system and the existing visual style of the project; before adding or changing UI, inspect nearby screens/components and match their layout density, spacing rhythm, typography scale, color usage, border radius, shadows, interaction states, and overall tone unless the user explicitly asks for a new direction.
 - Prefer zero-runtime styling for performance-sensitive UI when it fits the project stack.
+- When UI styling starts repeating, extract it into project UI primitives, component variants, shared class composition helpers, or colocated component styles instead of duplicating long one-off class lists across route/page code.
 - Ensure interactive elements are semantic, keyboard-accessible, and expose visible focus states.
 - Use buttons for actions and links for navigation.
 - Keep user-facing text readable, concise, and placed in the appropriate localization/config layer when the project has one.
