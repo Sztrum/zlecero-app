@@ -1,7 +1,7 @@
 # AGENTS_PROJECT_RULES.md
 
 ## Version
-v2.0.2
+v2.1.0
 
 ## Scope
 Repository-specific rules for the Zlecero React application project initialized from the `bulletproof-react` approach.
@@ -21,8 +21,9 @@ Read documents in this exact order before implementation:
 - Base new frontend architecture on the principles from `https://github.com/alan2207/bulletproof-react`, especially feature-oriented structure, clean import boundaries, explicit API declarations, server-state separation, and strict verification.
 - Treat `bulletproof-react` as an architectural guide, not a blind boilerplate copy. Preserve the principles while adapting names, modules, routes, UI, and API contracts to Zlecero.
 - The preferred initial app flavor is Vite + React + TypeScript unless the user explicitly chooses another framework such as Next.js.
-- This repository owns client-facing application UI and admin UI after the React project is scaffolded here.
-- The Laravel project is the canonical backend and API source of truth for persistence, domain behavior, auth endpoints, queues, mail, and integrations.
+- This repository owns only the client-facing dashboard UI and admin dashboard UI after the React project is scaffolded here.
+- Do not implement SEO/public marketing pages such as the landing page in this repository; keep those pages in the Laravel Zlecero repository unless the user explicitly changes the product split.
+- The Laravel project is the canonical backend and API source of truth for persistence, domain behavior, auth endpoints, queues, mail, integrations, and SEO/public server-rendered pages.
 - Keep API contracts explicit so the React app integrates with the Laravel API without depending on Laravel internals.
 
 ## Expected Repository Map
