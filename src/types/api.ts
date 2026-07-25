@@ -133,6 +133,26 @@ export type InquiryStatusChange = {
   changedAt: string;
 };
 
+export type InquiryFile = Entity<{
+  source: string;
+  originalName: string;
+  mimeType: string | null;
+  sizeBytes: number;
+  category: string | null;
+  description: string | null;
+  uploadedByUserId: string | null;
+  messageId: string | null;
+  downloadUrl: string;
+  updatedAt: string | null;
+}>;
+
+export type InquiryNote = Entity<{
+  body: string;
+  isInternal: boolean;
+  author: InquiryParty | null;
+  updatedAt: string | null;
+}>;
+
 export type Inquiry = Entity<{
   title: string;
   description: string | null;
@@ -146,6 +166,8 @@ export type Inquiry = Entity<{
   customer: InquiryParty | null;
   owner: InquiryParty | null;
   messages: InquiryMessage[];
+  files: InquiryFile[];
+  notes: InquiryNote[];
   statusChanges: InquiryStatusChange[];
   updatedAt: string | null;
 }>;

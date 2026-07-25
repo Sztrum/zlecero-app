@@ -97,6 +97,33 @@ const models = {
     sentAt: nullable(String),
     createdAt: String,
   },
+  inquiryFile: {
+    id: primaryKey(nanoid),
+    companyId: String,
+    inquiryId: String,
+    customerId: nullable(String),
+    inquiryMessageId: nullable(String),
+    uploadedByUserId: nullable(String),
+    source: String,
+    originalName: String,
+    mimeType: nullable(String),
+    sizeBytes: Number,
+    category: nullable(String),
+    description: nullable(String),
+    downloadUrl: String,
+    createdAt: String,
+    updatedAt: String,
+  },
+  inquiryNote: {
+    id: primaryKey(nanoid),
+    companyId: String,
+    inquiryId: String,
+    authorUserId: nullable(String),
+    body: String,
+    isInternal: Boolean,
+    createdAt: String,
+    updatedAt: String,
+  },
 };
 
 export const db = factory(models);

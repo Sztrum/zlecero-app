@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { type AxiosProgressEvent } from 'axios';
 import { z } from 'zod';
 
 import { api } from '@/lib/api-client';
@@ -35,8 +36,13 @@ export const inquiryMessageSchema = z.object({
   body: z.string().min(1, 'Required'),
 });
 
+export const inquiryNoteSchema = z.object({
+  body: z.string().min(1, 'Required'),
+});
+
 export type InquiryInput = z.infer<typeof inquirySchema>;
 export type InquiryMessageInput = z.infer<typeof inquiryMessageSchema>;
+export type InquiryNoteInput = z.infer<typeof inquiryNoteSchema>;
 
 export type InquiryFilters = {
   status?: InquiryStatus;
@@ -160,6 +166,71 @@ export const addInquiryMessage = async ({
   return response.data;
 };
 
+export const addInquiryNote = async ({
+  inquiryId,
+  data,
+}: {
+  inquiryId: string;
+  data: InquiryNoteInput;
+}): Promise<Inquiry> => {
+  const response = await api.post<unknown, ApiResponse<Inquiry>>(
+    `/inquiries/${inquiryId}/notes`,
+    { body: data.body },
+  );
+
+  return response.data;
+};
+
+export const uploadInquiryFile = async ({
+  inquiryId,
+  file,
+  category,
+  description,
+  signal,
+  onUploadProgress,
+}: {
+  inquiryId: string;
+  file: File;
+  category?: string;
+  description?: string;
+  signal?: AbortSignal;
+  onUploadProgress?: (event: AxiosProgressEvent) => void;
+}): Promise<Inquiry> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  if (category) {
+    formData.append('category', category);
+  }
+
+  if (description) {
+    formData.append('description', description);
+  }
+
+  const response = await api.post<unknown, ApiResponse<Inquiry>>(
+    `/inquiries/${inquiryId}/files`,
+    formData,
+    { signal, onUploadProgress },
+  );
+
+  return response.data;
+};
+
+export const assignInquiryOwner = async ({
+  inquiryId,
+  ownerUserId,
+}: {
+  inquiryId: string;
+  ownerUserId: string | null;
+}): Promise<Inquiry> => {
+  const response = await api.patch<unknown, ApiResponse<Inquiry>>(
+    `/inquiries/${inquiryId}/owner`,
+    { owner_user_id: ownerUserId },
+  );
+
+  return response.data;
+};
+
 export const useInquiries = (filters: InquiryFilters = {}) =>
   useQuery({
     queryKey: [...inquiriesQueryKey, filters],
@@ -193,3 +264,7 @@ export const useChangeInquiryStatus = () =>
 export const useArchiveInquiry = () => useInquiryMutation(archiveInquiry);
 export const useRestoreInquiry = () => useInquiryMutation(restoreInquiry);
 export const useAddInquiryMessage = () => useInquiryMutation(addInquiryMessage);
+export const useAddInquiryNote = () => useInquiryMutation(addInquiryNote);
+export const useUploadInquiryFile = () => useInquiryMutation(uploadInquiryFile);
+export const useAssignInquiryOwner = () =>
+  useInquiryMutation(assignInquiryOwner);
