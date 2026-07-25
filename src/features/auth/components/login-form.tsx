@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from 'react-router';
+import { Link } from 'react-router';
 
 import { Button } from '@/components/ui/button';
 import { Form, Input } from '@/components/ui/form';
@@ -13,8 +13,6 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
   const login = useLogin({
     onSuccess,
   });
-  const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get('redirectTo');
 
   return (
     <div>
@@ -53,7 +51,7 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
       <div className="mt-2 flex items-center justify-end">
         <div className="text-sm">
           <Link
-            to={paths.auth.register.getHref(redirectTo)}
+            to={paths.auth.register.getHref()}
             className="font-medium text-blue-600 hover:text-blue-500"
           >
             Register

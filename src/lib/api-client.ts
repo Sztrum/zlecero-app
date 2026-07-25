@@ -2,14 +2,20 @@ import Axios, { InternalAxiosRequestConfig } from 'axios';
 
 import { useNotifications } from '@/components/ui/notifications';
 import { env } from '@/config/env';
-import { paths } from '@/config/paths';
+
+import { authToken } from './auth-token';
 
 function authRequestInterceptor(config: InternalAxiosRequestConfig) {
   if (config.headers) {
     config.headers.Accept = 'application/json';
+
+    const token = authToken.get();
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
 
-  config.withCredentials = true;
   return config;
 }
 
@@ -31,10 +37,7 @@ api.interceptors.response.use(
     });
 
     if (error.response?.status === 401) {
-      const searchParams = new URLSearchParams();
-      const redirectTo =
-        searchParams.get('redirectTo') || window.location.pathname;
-      window.location.href = paths.auth.login.getHref(redirectTo);
+      authToken.clear();
     }
 
     return Promise.reject(error);

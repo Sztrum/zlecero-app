@@ -4,14 +4,14 @@ import {
   waitForElementToBeRemoved,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import Cookies from 'js-cookie';
 import { RouterProvider, createMemoryRouter } from 'react-router';
 
 import { AppProvider } from '@/app/provider';
+import { authToken } from '@/lib/auth-token';
 
 import { createUser as generateUser } from './data-generators';
 import { db } from './mocks/db';
-import { AUTH_COOKIE, authenticate, hash } from './mocks/utils';
+import { authenticate, hash } from './mocks/utils';
 
 export const createUser = async (userProperties?: any) => {
   const user = generateUser(userProperties) as any;
@@ -21,7 +21,7 @@ export const createUser = async (userProperties?: any) => {
 
 export const loginAsUser = async (user: any) => {
   const authUser = await authenticate(user);
-  Cookies.set(AUTH_COOKIE, authUser.jwt);
+  authToken.set(authUser.token);
   return authUser;
 };
 

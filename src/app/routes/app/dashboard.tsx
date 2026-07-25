@@ -8,7 +8,7 @@ const DashboardRoute = () => {
     <ContentLayout title="Dashboard">
       <div className="space-y-4">
         <h1 className="text-xl font-semibold text-gray-900">
-          Welcome {user.data?.firstName} {user.data?.lastName}
+          Welcome {user.data?.name}
         </h1>
         <p className="text-sm text-gray-600">
           This is the initial Zlecero React application shell. New product areas

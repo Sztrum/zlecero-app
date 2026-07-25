@@ -17,14 +17,18 @@ export type Meta = {
 };
 
 export type User = Entity<{
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
-  role: 'ADMIN' | 'USER';
-  bio: string;
+  avatar: string;
+  role?: 'ADMIN' | 'USER';
 }>;
 
-export type AuthResponse = {
-  jwt: string;
-  user: User;
+export type ApiResponse<T> = {
+  status: number;
+  message?: string;
+  data: T;
+};
+
+export type AuthTokenResponse = {
+  token: string;
 };
