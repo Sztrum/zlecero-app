@@ -40,6 +40,26 @@ const generateUser = () => ({
   createdAt: Date.now(),
 });
 
+const generateCustomer = () => ({
+  id: randUuid() + Math.random(),
+  companyId: generateCompany().id,
+  type: 'company',
+  displayName: randCompanyName(),
+  companyName: randCompanyName(),
+  firstName: '',
+  lastName: '',
+  email: randEmail(),
+  phone: '',
+  taxNumber: '',
+  addressLine: '',
+  postalCode: '',
+  city: '',
+  countryCode: 'PL',
+  notes: '',
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+});
+
 export const createUser = <T extends Partial<ReturnType<typeof generateUser>>>(
   overrides?: T,
 ) => {
@@ -52,4 +72,12 @@ export const createCompany = <
   overrides?: T,
 ) => {
   return { ...generateCompany(), ...overrides };
+};
+
+export const createCustomer = <
+  T extends Partial<ReturnType<typeof generateCustomer>>,
+>(
+  overrides?: T,
+) => {
+  return { ...generateCustomer(), ...overrides };
 };
