@@ -1,4 +1,11 @@
-import { Home, PanelLeft, User2, type LucideIcon } from 'lucide-react';
+import {
+  Building2,
+  Home,
+  PanelLeft,
+  User2,
+  Users,
+  type LucideIcon,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { NavLink, useNavigate, useNavigation } from 'react-router';
 
@@ -83,6 +90,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   });
   const navigation: SideNavigationItem[] = [
     { name: 'Dashboard', to: paths.app.dashboard.getHref(), icon: Home },
+    { name: 'Company', to: paths.app.company.getHref(), icon: Building2 },
+    { name: 'Users', to: paths.app.companyUsers.getHref(), icon: Users },
   ];
 
   return (

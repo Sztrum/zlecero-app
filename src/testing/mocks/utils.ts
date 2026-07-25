@@ -49,6 +49,21 @@ const omit = <T extends object>(obj: T, keys: string[]): T => {
 export const sanitizeUser = <O extends object>(user: O) =>
   omit<O>(user, ['password', 'iat']);
 
+export const hydrateUser = (user: any) => {
+  const company = db.company.findFirst({
+    where: {
+      id: {
+        equals: user.companyId,
+      },
+    },
+  });
+
+  return {
+    ...sanitizeUser(user),
+    company,
+  };
+};
+
 export function authenticate({
   email,
   password,
@@ -65,7 +80,7 @@ export function authenticate({
   });
 
   if (user?.password === hash(password)) {
-    const sanitizedUser = sanitizeUser(user);
+    const sanitizedUser = hydrateUser(user);
     const encodedToken = encode(sanitizedUser);
     return { user: sanitizedUser, token: encodedToken };
   }
@@ -99,14 +114,14 @@ export function requireAuth(authorizationHeader: string | null) {
       return { error: 'Unauthorized', user: null };
     }
 
-    return { user: sanitizeUser(user) };
+    return { user: hydrateUser(user) };
   } catch (err: any) {
     return { error: 'Unauthorized', user: null };
   }
 }
 
 export function requireAdmin(user: any) {
-  if (user.role !== 'ADMIN') {
+  if (user.role !== 'owner' && user.role !== 'admin') {
     throw Error('Unauthorized');
   }
 }

@@ -16,11 +16,48 @@ export type Meta = {
   totalPages: number;
 };
 
+export type CompanyUserRole = 'owner' | 'admin' | 'member';
+export type CompanyUserStatus = 'invited' | 'active' | 'deactivated';
+
+export type Company = Entity<{
+  name: string;
+  slug: string;
+  billingName: string | null;
+  taxNumber: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  addressLine: string | null;
+  postalCode: string | null;
+  city: string | null;
+  countryCode: string;
+  brandColor: string;
+  trialDays: number;
+  trialStartedAt: string | null;
+  trialEndsAt: string | null;
+  onboardingCompletedAt: string | null;
+}>;
+
+export type CompanySummary = Pick<
+  Company,
+  'id' | 'name' | 'slug' | 'trialEndsAt' | 'onboardingCompletedAt'
+>;
+
 export type User = Entity<{
   name: string;
   email: string;
   avatar: string;
-  role?: 'ADMIN' | 'USER';
+  role: CompanyUserRole;
+  status: CompanyUserStatus;
+  company: CompanySummary | null;
+}>;
+
+export type CompanyUser = Entity<{
+  name: string;
+  email: string;
+  role: CompanyUserRole;
+  status: CompanyUserStatus;
+  invitedAt: string | null;
+  deactivatedAt: string | null;
 }>;
 
 export type ApiResponse<T> = {
