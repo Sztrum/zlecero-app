@@ -2,11 +2,8 @@ import Axios, { InternalAxiosRequestConfig } from 'axios';
 
 import { useNotifications } from '@/components/ui/notifications';
 import { env } from '@/config/env';
-import { paths } from '@/config/paths';
 
 import { authToken } from './auth-token';
-
-const isAuthRoute = (pathname: string) => pathname.startsWith('/auth/');
 
 function authRequestInterceptor(config: InternalAxiosRequestConfig) {
   if (config.headers) {
@@ -41,11 +38,6 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401) {
       authToken.clear();
-
-      if (!isAuthRoute(window.location.pathname)) {
-        const redirectTo = window.location.pathname;
-        window.location.href = paths.auth.login.getHref(redirectTo);
-      }
     }
 
     return Promise.reject(error);

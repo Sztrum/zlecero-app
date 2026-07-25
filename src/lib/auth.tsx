@@ -1,5 +1,5 @@
 import { configureAuth } from 'react-query-auth';
-import { Navigate, useLocation } from 'react-router';
+import { Navigate } from 'react-router';
 import { z } from 'zod';
 
 import { Spinner } from '@/components/ui/spinner';
@@ -74,7 +74,6 @@ export const { useUser, useLogin, useLogout, AuthLoader } =
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const user = useUser();
-  const location = useLocation();
 
   if (user.isLoading) {
     return (
@@ -85,9 +84,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!user.data) {
-    return (
-      <Navigate to={paths.auth.login.getHref(location.pathname)} replace />
-    );
+    return <Navigate to={paths.auth.login.getHref()} replace />;
   }
 
   return children;

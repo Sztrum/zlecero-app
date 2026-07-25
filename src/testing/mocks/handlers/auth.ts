@@ -97,7 +97,12 @@ export const authHandlers = [
     await networkDelay();
 
     try {
-      const { user } = requireAuth(request.headers.get('authorization'));
+      const { error, user } = requireAuth(request.headers.get('authorization'));
+
+      if (error) {
+        return HttpResponse.json({ message: error }, { status: 401 });
+      }
+
       return HttpResponse.json({ status: 200, data: user });
     } catch (error: any) {
       return HttpResponse.json(

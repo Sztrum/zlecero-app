@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { Link, useSearchParams } from 'react-router';
+import { Link } from 'react-router';
 
 import { Button } from '@/components/ui/button';
 import { Form, Input } from '@/components/ui/form';
@@ -15,8 +15,6 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
     mutationFn: registerUser,
     onSuccess,
   });
-  const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get('redirectTo');
 
   return (
     <div>
@@ -55,7 +53,7 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
       <div className="mt-2 flex items-center justify-end">
         <div className="text-sm">
           <Link
-            to={paths.auth.login.getHref(redirectTo)}
+            to={paths.auth.login.getHref()}
             className="font-medium text-blue-600 hover:text-blue-500"
           >
             Log In
