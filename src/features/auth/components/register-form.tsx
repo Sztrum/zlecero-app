@@ -38,6 +38,39 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
               error={formState.errors['email']}
               registration={register('email')}
             />
+            <Input
+              type="text"
+              label="Company Name"
+              error={formState.errors['companyName']}
+              registration={register('companyName')}
+            />
+            <Input
+              type="password"
+              label="Password"
+              error={formState.errors['password']}
+              registration={register('password')}
+            />
+            <Input
+              type="password"
+              label="Confirm Password"
+              error={formState.errors['passwordConfirmation']}
+              registration={register('passwordConfirmation')}
+            />
+            <label className="flex items-start gap-3 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                className="mt-1"
+                {...register('termsAccepted')}
+              />
+              <span>
+                I accept the required terms for creating a company account.
+              </span>
+            </label>
+            {formState.errors['termsAccepted'] ? (
+              <p className="text-sm text-red-600">
+                {formState.errors['termsAccepted'].message}
+              </p>
+            ) : null}
             <div>
               <Button
                 isLoading={registering.isPending}

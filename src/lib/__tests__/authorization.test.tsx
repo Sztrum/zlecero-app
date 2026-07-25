@@ -23,7 +23,7 @@ test('should view protected resource if user role is matching', async () => {
 
 test('should not view protected resource if user role does not match and show fallback message instead', async () => {
   const user = await createUser({
-    role: ROLES.USER,
+    role: ROLES.MEMBER,
   });
 
   const protectedResource = 'This is very confidential data';
@@ -61,7 +61,7 @@ test('should view protected resource if policy check passes', async () => {
 
 test('should not view protected resource if policy check fails and show fallback message instead', async () => {
   const user = await createUser({
-    role: ROLES.USER,
+    role: ROLES.MEMBER,
   });
 
   const protectedResource = 'This is very confidential data';

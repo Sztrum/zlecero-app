@@ -9,6 +9,8 @@ import { authenticate, hash, requireAuth, networkDelay } from '../utils';
 type RegisterBody = {
   name: string;
   email: string;
+  password: string;
+  company_name: string;
 };
 
 type LoginBody = {
@@ -37,14 +39,39 @@ export const authHandlers = [
         );
       }
 
-      db.user.create({
-        ...userObject,
-        role: 'ADMIN',
-        bio: '',
-        avatar: 'https://picsum.photos/150/150',
-        password: hash('pending-password'),
+      const company = db.company.create({
+        name: userObject.company_name,
+        slug: userObject.company_name.toLowerCase().replace(/\s+/g, '-'),
+        billingName: '',
+        taxNumber: '',
+        contactEmail: '',
+        contactPhone: '',
+        addressLine: '',
+        postalCode: '',
+        city: '',
+        countryCode: 'PL',
+        brandColor: '#2563eb',
+        trialDays: 14,
+        trialStartedAt: new Date().toISOString(),
+        trialEndsAt: new Date(
+          Date.now() + 14 * 24 * 60 * 60 * 1000,
+        ).toISOString(),
+        onboardingCompletedAt: '',
       });
 
+      db.user.create({
+        ...userObject,
+        companyId: company.id,
+        role: 'owner',
+        status: 'active',
+        bio: '',
+        avatar: 'https://picsum.photos/150/150',
+        password: hash(userObject.password),
+        invitedAt: '',
+        deactivatedAt: '',
+      });
+
+      await persistDb('company');
       await persistDb('user');
 
       return HttpResponse.json({

@@ -1,15 +1,38 @@
-import { factory, primaryKey } from '@mswjs/data';
+import { factory, nullable, primaryKey } from '@mswjs/data';
 import { nanoid } from 'nanoid';
 
 const models = {
+  company: {
+    id: primaryKey(nanoid),
+    name: String,
+    slug: String,
+    billingName: String,
+    taxNumber: String,
+    contactEmail: String,
+    contactPhone: String,
+    addressLine: String,
+    postalCode: String,
+    city: String,
+    countryCode: String,
+    brandColor: String,
+    trialDays: Number,
+    trialStartedAt: String,
+    trialEndsAt: String,
+    onboardingCompletedAt: nullable(String),
+    createdAt: Date.now,
+  },
   user: {
     id: primaryKey(nanoid),
+    companyId: String,
     name: String,
     email: String,
     avatar: String,
     password: String,
     role: String,
+    status: String,
     bio: String,
+    invitedAt: String,
+    deactivatedAt: String,
     createdAt: Date.now,
   },
 };

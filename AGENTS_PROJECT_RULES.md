@@ -1,7 +1,7 @@
 # AGENTS_PROJECT_RULES.md
 
 ## Version
-v2.3.0
+v2.4.0
 
 ## Scope
 Repository-specific rules for the Zlecero React application project initialized from the `bulletproof-react` approach.
@@ -83,6 +83,7 @@ Read documents in this exact order before implementation:
 - Keep authenticated user handling in a shared auth library such as `src/lib/auth.tsx` once auth exists.
 - Keep RBAC/PBAC logic in shared authorization helpers/components, such as `src/lib/authorization.tsx`, and call those helpers from features.
 - Do not persist sensitive long-lived tokens in browser storage without explicit user approval and documented risk.
+- For MVP tenant features, React routes may show or hide actions by role for UX, but Laravel API authorization and company scoping remain authoritative; frontend API declarations must use company-scoped endpoints and avoid passing arbitrary company IDs unless an administrator scope is explicitly introduced.
 
 ## Components, Styling, And Design System
 - Build reusable UI primitives in `src/components/ui/**`.

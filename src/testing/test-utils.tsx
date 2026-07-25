@@ -9,13 +9,22 @@ import { RouterProvider, createMemoryRouter } from 'react-router';
 import { AppProvider } from '@/app/provider';
 import { authToken } from '@/lib/auth-token';
 
-import { createUser as generateUser } from './data-generators';
+import {
+  createCompany as generateCompany,
+  createUser as generateUser,
+} from './data-generators';
 import { db } from './mocks/db';
 import { authenticate, hash } from './mocks/utils';
 
 export const createUser = async (userProperties?: any) => {
   const user = generateUser(userProperties) as any;
-  await db.user.create({ ...user, password: hash(user.password) });
+  const company = user.company || generateCompany();
+  await db.company.create(company);
+  await db.user.create({
+    ...user,
+    companyId: company.id,
+    password: hash(user.password),
+  });
   return user;
 };
 

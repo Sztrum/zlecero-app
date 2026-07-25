@@ -37,10 +37,19 @@ const loginWithEmailAndPassword = (
   return api.post<unknown, ApiResponse<AuthTokenResponse>>('/auth/login', data);
 };
 
-export const registerInputSchema = z.object({
-  email: z.string().min(1, 'Required').email('Invalid email'),
-  name: z.string().min(1, 'Required'),
-});
+export const registerInputSchema = z
+  .object({
+    email: z.string().min(1, 'Required').email('Invalid email'),
+    name: z.string().min(1, 'Required'),
+    password: z.string().min(8, 'Password must contain at least 8 characters'),
+    passwordConfirmation: z.string().min(8, 'Required'),
+    companyName: z.string().min(1, 'Required'),
+    termsAccepted: z.boolean().refine((value) => value, 'Required'),
+  })
+  .refine((data) => data.password === data.passwordConfirmation, {
+    message: 'Passwords must match',
+    path: ['passwordConfirmation'],
+  });
 
 export type RegisterInput = z.infer<typeof registerInputSchema>;
 
@@ -49,7 +58,14 @@ export const registerUser = (
 ): Promise<ApiResponse<Record<string, never>>> => {
   return api.post<unknown, ApiResponse<Record<string, never>>>(
     '/auth/register',
-    data,
+    {
+      name: data.name,
+      email: data.email,
+      password: data.password,
+      password_confirmation: data.passwordConfirmation,
+      company_name: data.companyName,
+      terms_accepted: data.termsAccepted,
+    },
   );
 };
 
