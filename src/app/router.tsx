@@ -83,6 +83,26 @@ export const createAppRouter = (queryClient: QueryClient) =>
             import('./routes/app/inquiries/detail').then(convert(queryClient)),
         },
         {
+          path: paths.app.offers.path,
+          lazy: () =>
+            import('./routes/app/offers/index').then(convert(queryClient)),
+        },
+        {
+          path: paths.app.offerDetail.path,
+          lazy: () =>
+            import('./routes/app/offers/detail').then(convert(queryClient)),
+        },
+        {
+          path: paths.app.orders.path,
+          lazy: () =>
+            import('./routes/app/orders/index').then(convert(queryClient)),
+        },
+        {
+          path: paths.app.orderDetail.path,
+          lazy: () =>
+            import('./routes/app/orders/detail').then(convert(queryClient)),
+        },
+        {
           path: paths.app.dashboard.path,
           lazy: () =>
             import('./routes/app/dashboard').then(convert(queryClient)),

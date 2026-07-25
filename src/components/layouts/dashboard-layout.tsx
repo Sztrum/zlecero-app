@@ -1,6 +1,8 @@
 import {
   Building2,
+  ClipboardList,
   Contact,
+  FileText,
   Inbox,
   Home,
   PanelLeft,
@@ -94,6 +96,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     { name: 'Dashboard', to: paths.app.dashboard.getHref(), icon: Home },
     { name: 'Customers', to: paths.app.customers.getHref(), icon: Contact },
     { name: 'Inquiries', to: paths.app.inquiries.getHref(), icon: Inbox },
+    { name: 'Offers', to: paths.app.offers.getHref(), icon: FileText },
+    { name: 'Orders', to: paths.app.orders.getHref(), icon: ClipboardList },
     { name: 'Company', to: paths.app.company.getHref(), icon: Building2 },
     { name: 'Users', to: paths.app.companyUsers.getHref(), icon: Users },
   ];
