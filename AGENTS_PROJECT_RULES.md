@@ -1,7 +1,7 @@
 # AGENTS_PROJECT_RULES.md
 
 ## Version
-v2.2.0
+v2.3.0
 
 ## Scope
 Repository-specific rules for the Zlecero React application project initialized from the `bulletproof-react` approach.
@@ -119,6 +119,7 @@ Read documents in this exact order before implementation:
 
 ## Documentation Workflow
 - Keep `AGENTS.md`, `AGENTS_CODING_RULES.md`, `AGENTS_PROJECT_RULES.md`, and module-level `AGENTS.md` files synchronized with architecture and workflow decisions.
+- During MVP implementation, update the Laravel repository file `docs/mvp-execution-log.md` as the canonical cross-repository work log for stages, ClickUp task mapping, implementation progress, architectural/product questions, problems, verification, and PR/merge status.
 - If the user says `zapamietaj to na przyszlosc`, treat it as a mandatory documentation update in the relevant AGENTS document.
 - If the user says `dopisz/zmien w AGENTS.md`, update the relevant AGENTS docs in scope, not only the root file when the rule belongs elsewhere.
 - If a touched feature or shared area gains non-trivial custom conventions and has no local `AGENTS.md`, create one there and register it in this file.
