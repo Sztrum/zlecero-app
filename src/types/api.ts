@@ -19,6 +19,17 @@ export type Meta = {
 export type CompanyUserRole = 'owner' | 'admin' | 'member';
 export type CompanyUserStatus = 'invited' | 'active' | 'deactivated';
 export type CustomerType = 'company' | 'individual';
+export type InquiryStatus =
+  | 'new'
+  | 'triage'
+  | 'waiting_for_customer'
+  | 'preparing_offer'
+  | 'offer_sent'
+  | 'accepted'
+  | 'rejected'
+  | 'closed';
+export type InquiryPriority = 'low' | 'normal' | 'high' | 'urgent';
+export type InquiryMessageDirection = 'inbound' | 'outbound' | 'internal';
 
 export type Company = Entity<{
   name: string;
@@ -92,6 +103,50 @@ export type Customer = Entity<{
   notes: string | null;
   potentialDuplicates: CustomerDuplicate[];
   history: CustomerHistory | null;
+  updatedAt: string | null;
+}>;
+
+export type InquiryParty = {
+  id: string;
+  displayName?: string;
+  name?: string;
+  email: string | null;
+};
+
+export type InquiryMessage = Entity<{
+  direction: InquiryMessageDirection;
+  senderName: string | null;
+  senderEmail: string | null;
+  recipientEmail: string | null;
+  subject: string | null;
+  body: string;
+  externalMessageId: string | null;
+  externalThreadId: string | null;
+  sentAt: string | null;
+}>;
+
+export type InquiryStatusChange = {
+  id: string;
+  fromStatus: InquiryStatus | null;
+  toStatus: InquiryStatus;
+  changedByUserId: string | null;
+  changedAt: string;
+};
+
+export type Inquiry = Entity<{
+  title: string;
+  description: string | null;
+  source: string;
+  status: InquiryStatus;
+  priority: InquiryPriority;
+  responseDueAt: string | null;
+  realizationDueAt: string | null;
+  pickupDueAt: string | null;
+  archivedAt: string | null;
+  customer: InquiryParty | null;
+  owner: InquiryParty | null;
+  messages: InquiryMessage[];
+  statusChanges: InquiryStatusChange[];
   updatedAt: string | null;
 }>;
 
