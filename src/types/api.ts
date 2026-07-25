@@ -172,6 +172,79 @@ export type Inquiry = Entity<{
   updatedAt: string | null;
 }>;
 
+export type OfferStatus = 'draft' | 'sent' | 'accepted' | 'rejected';
+export type OfferDiscountType = 'percent' | 'amount';
+
+export type OfferItem = Entity<{
+  position: number;
+  name: string;
+  description: string | null;
+  quantity: string;
+  unit: string;
+  unitPriceCents: number;
+  taxRate: string;
+  netCents: number;
+  taxCents: number;
+  grossCents: number;
+}>;
+
+export type Offer = Entity<{
+  inquiryId: string;
+  customer: InquiryParty | null;
+  owner: InquiryParty | null;
+  number: string;
+  status: OfferStatus;
+  currency: string;
+  issueDate: string;
+  validUntil: string;
+  paymentDueDays: number;
+  deliveryCostCents: number;
+  discountType: OfferDiscountType | null;
+  discountValue: string;
+  depositPercent: string;
+  terms: string | null;
+  notes: string | null;
+  subtotalNetCents: number;
+  discountCents: number;
+  taxCents: number;
+  totalGrossCents: number;
+  depositCents: number;
+  pdf: { generatedAt: string | null; downloadUrl: string } | null;
+  orderId: string | null;
+  sentAt: string | null;
+  acceptedAt: string | null;
+  rejectedAt: string | null;
+  items: OfferItem[];
+  updatedAt: string | null;
+}>;
+
+export type OrderStatus = 'new' | 'in_progress' | 'completed';
+
+export type OrderItem = Omit<OfferItem, never>;
+
+export type Order = Entity<{
+  inquiryId: string | null;
+  offerId: string;
+  customer: InquiryParty | null;
+  owner: InquiryParty | null;
+  number: string;
+  status: OrderStatus;
+  currency: string;
+  acceptedDate: string;
+  paymentDueDate: string | null;
+  realizationDueDate: string | null;
+  pickupDueDate: string | null;
+  terms: string | null;
+  notes: string | null;
+  subtotalNetCents: number;
+  discountCents: number;
+  taxCents: number;
+  totalGrossCents: number;
+  depositCents: number;
+  items: OrderItem[];
+  updatedAt: string | null;
+}>;
+
 export type ApiResponse<T> = {
   status: number;
   message?: string;

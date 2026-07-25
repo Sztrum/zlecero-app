@@ -56,5 +56,21 @@ export const paths = {
       path: 'inquiries/:inquiryId',
       getHref: (inquiryId: string) => `/app/inquiries/${inquiryId}`,
     },
+    offers: {
+      path: 'offers',
+      getHref: () => '/app/offers',
+    },
+    offerDetail: {
+      path: 'offers/:offerId',
+      getHref: (offerId: string) => `/app/offers/${offerId}`,
+    },
+    orders: {
+      path: 'orders',
+      getHref: () => '/app/orders',
+    },
+    orderDetail: {
+      path: 'orders/:orderId',
+      getHref: (orderId: string) => `/app/orders/${orderId}`,
+    },
   },
 } as const;
