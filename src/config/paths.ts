@@ -32,6 +32,10 @@ export const paths = {
       path: 'profile',
       getHref: () => '/app/profile',
     },
+    admin: {
+      path: 'admin',
+      getHref: () => '/app/admin',
+    },
     company: {
       path: 'company',
       getHref: () => '/app/company',

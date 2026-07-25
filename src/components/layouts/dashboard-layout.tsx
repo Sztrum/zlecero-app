@@ -3,6 +3,7 @@ import {
   ClipboardList,
   Contact,
   FileText,
+  Gauge,
   Inbox,
   Home,
   PanelLeft,
@@ -94,6 +95,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   });
   const navigation: SideNavigationItem[] = [
     { name: 'Dashboard', to: paths.app.dashboard.getHref(), icon: Home },
+    { name: 'Admin', to: paths.app.admin.getHref(), icon: Gauge },
     { name: 'Customers', to: paths.app.customers.getHref(), icon: Contact },
     { name: 'Inquiries', to: paths.app.inquiries.getHref(), icon: Inbox },
     { name: 'Offers', to: paths.app.offers.getHref(), icon: FileText },
