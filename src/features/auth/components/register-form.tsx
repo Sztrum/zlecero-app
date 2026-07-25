@@ -1,16 +1,20 @@
+import { useMutation } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router';
 
 import { Button } from '@/components/ui/button';
 import { Form, Input } from '@/components/ui/form';
 import { paths } from '@/config/paths';
-import { useRegister, registerInputSchema } from '@/lib/auth';
+import { registerInputSchema, registerUser } from '@/lib/auth';
 
 type RegisterFormProps = {
   onSuccess: () => void;
 };
 
 export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
-  const registering = useRegister({ onSuccess });
+  const registering = useMutation({
+    mutationFn: registerUser,
+    onSuccess,
+  });
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirectTo');
 
@@ -26,27 +30,15 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
           <>
             <Input
               type="text"
-              label="First Name"
-              error={formState.errors['firstName']}
-              registration={register('firstName')}
-            />
-            <Input
-              type="text"
-              label="Last Name"
-              error={formState.errors['lastName']}
-              registration={register('lastName')}
+              label="Name"
+              error={formState.errors['name']}
+              registration={register('name')}
             />
             <Input
               type="email"
               label="Email Address"
               error={formState.errors['email']}
               registration={register('email')}
-            />
-            <Input
-              type="password"
-              label="Password"
-              error={formState.errors['password']}
-              registration={register('password')}
             />
             <div>
               <Button

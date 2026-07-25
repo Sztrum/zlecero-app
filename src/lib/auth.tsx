@@ -4,20 +4,25 @@ import { z } from 'zod';
 
 import { Spinner } from '@/components/ui/spinner';
 import { paths } from '@/config/paths';
-import { AuthResponse, User } from '@/types/api';
+import { ApiResponse, AuthTokenResponse, User } from '@/types/api';
 
 import { api } from './api-client';
+import { authToken } from './auth-token';
 
 // API call definitions for auth are shared because auth is used across routes and features.
 
 const getUser = async (): Promise<User> => {
-  const response = await api.get('/auth/me');
+  const response = await api.get<unknown, ApiResponse<User>>('/auth/profile');
 
   return response.data;
 };
 
-const logout = (): Promise<void> => {
-  return api.post('/auth/logout');
+const logout = async (): Promise<void> => {
+  try {
+    await api.post('/auth/logout');
+  } finally {
+    authToken.clear();
+  }
 };
 
 export const loginInputSchema = z.object({
@@ -26,39 +31,45 @@ export const loginInputSchema = z.object({
 });
 
 export type LoginInput = z.infer<typeof loginInputSchema>;
-const loginWithEmailAndPassword = (data: LoginInput): Promise<AuthResponse> => {
-  return api.post('/auth/login', data);
+const loginWithEmailAndPassword = (
+  data: LoginInput,
+): Promise<ApiResponse<AuthTokenResponse>> => {
+  return api.post<unknown, ApiResponse<AuthTokenResponse>>('/auth/login', data);
 };
 
 export const registerInputSchema = z.object({
   email: z.string().min(1, 'Required').email('Invalid email'),
-  firstName: z.string().min(1, 'Required'),
-  lastName: z.string().min(1, 'Required'),
-  password: z.string().min(5, 'Required'),
+  name: z.string().min(1, 'Required'),
 });
 
 export type RegisterInput = z.infer<typeof registerInputSchema>;
 
-const registerWithEmailAndPassword = (
+export const registerUser = (
   data: RegisterInput,
-): Promise<AuthResponse> => {
-  return api.post('/auth/register', data);
+): Promise<ApiResponse<Record<string, never>>> => {
+  return api.post<unknown, ApiResponse<Record<string, never>>>(
+    '/auth/register',
+    data,
+  );
 };
 
 const authConfig = {
   userFn: getUser,
   loginFn: async (data: LoginInput) => {
     const response = await loginWithEmailAndPassword(data);
-    return response.user;
+    authToken.set(response.data.token);
+
+    return getUser();
   },
   registerFn: async (data: RegisterInput) => {
-    const response = await registerWithEmailAndPassword(data);
-    return response.user;
+    await registerUser(data);
+
+    throw new Error('Registration does not create an authenticated session.');
   },
   logoutFn: logout,
 };
 
-export const { useUser, useLogin, useLogout, useRegister, AuthLoader } =
+export const { useUser, useLogin, useLogout, AuthLoader } =
   configureAuth(authConfig);
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {

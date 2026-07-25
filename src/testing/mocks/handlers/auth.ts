@@ -1,22 +1,14 @@
-import Cookies from 'js-cookie';
 import { HttpResponse, http } from 'msw';
 
 import { env } from '@/config/env';
+import { authToken } from '@/lib/auth-token';
 
 import { db, persistDb } from '../db';
-import {
-  authenticate,
-  hash,
-  requireAuth,
-  AUTH_COOKIE,
-  networkDelay,
-} from '../utils';
+import { authenticate, hash, requireAuth, networkDelay } from '../utils';
 
 type RegisterBody = {
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
-  password: string;
 };
 
 type LoginBody = {
@@ -49,23 +41,16 @@ export const authHandlers = [
         ...userObject,
         role: 'ADMIN',
         bio: '',
-        password: hash(userObject.password),
+        avatar: 'https://picsum.photos/150/150',
+        password: hash('pending-password'),
       });
 
       await persistDb('user');
 
-      const result = authenticate({
-        email: userObject.email,
-        password: userObject.password,
-      });
-
-      Cookies.set(AUTH_COOKIE, result.jwt, { path: '/' });
-
-      return HttpResponse.json(result, {
-        headers: {
-          // With a real API server, the token cookie should also be Secure and HttpOnly.
-          'Set-Cookie': `${AUTH_COOKIE}=${result.jwt}; Path=/;`,
-        },
+      return HttpResponse.json({
+        status: 200,
+        message: 'User registered',
+        data: {},
       });
     } catch (error: any) {
       return HttpResponse.json(
@@ -82,12 +67,11 @@ export const authHandlers = [
       const credentials = (await request.json()) as LoginBody;
       const result = authenticate(credentials);
 
-      Cookies.set(AUTH_COOKIE, result.jwt, { path: '/' });
-
-      return HttpResponse.json(result, {
-        headers: {
-          // With a real API server, the token cookie should also be Secure and HttpOnly.
-          'Set-Cookie': `${AUTH_COOKIE}=${result.jwt}; Path=/;`,
+      return HttpResponse.json({
+        status: 200,
+        message: 'Authenticated',
+        data: {
+          token: result.token,
         },
       });
     } catch (error: any) {
@@ -101,24 +85,20 @@ export const authHandlers = [
   http.post(`${env.API_URL}/auth/logout`, async () => {
     await networkDelay();
 
-    Cookies.remove(AUTH_COOKIE);
+    authToken.clear();
 
-    return HttpResponse.json(
-      { message: 'Logged out' },
-      {
-        headers: {
-          'Set-Cookie': `${AUTH_COOKIE}=; Path=/;`,
-        },
-      },
-    );
+    return HttpResponse.json({
+      status: 200,
+      message: 'Logged out',
+    });
   }),
 
-  http.get(`${env.API_URL}/auth/me`, async ({ cookies }) => {
+  http.get(`${env.API_URL}/auth/profile`, async ({ request }) => {
     await networkDelay();
 
     try {
-      const { user } = requireAuth(cookies);
-      return HttpResponse.json({ data: user });
+      const { user } = requireAuth(request.headers.get('authorization'));
+      return HttpResponse.json({ status: 200, data: user });
     } catch (error: any) {
       return HttpResponse.json(
         { message: error?.message || 'Server Error' },

@@ -1,7 +1,7 @@
 # AGENTS_PROJECT_RULES.md
 
 ## Version
-v2.1.0
+v2.2.0
 
 ## Scope
 Repository-specific rules for the Zlecero React application project initialized from the `bulletproof-react` approach.
@@ -68,6 +68,7 @@ Read documents in this exact order before implementation:
 
 ## API And Integration Rules
 - Use one configured API client in `src/lib/**`, such as `src/lib/api-client.ts`.
+- For the MVP Laravel integration, authenticate API requests with the Sanctum Bearer token returned by Laravel and keep that token in session-scoped browser storage; do not use long-lived local storage tokens or switch to cookie/session auth until that architecture is explicitly approved and documented.
 - Prefer cookie-based authenticated requests with `withCredentials` when the backend supports secure cookie sessions.
 - Centralize auth redirect, 401 handling, common notifications, and shared response unwrapping in the API client or shared API helpers.
 - Define API declarations in the owning feature under `src/features/<feature>/api/**` unless the endpoint is truly shared across features.

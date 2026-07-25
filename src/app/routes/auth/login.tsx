@@ -8,13 +8,18 @@ const LoginRoute = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirectTo');
+  const validRedirectTo = redirectTo?.startsWith('/auth/') ? null : redirectTo;
 
   return (
     <AuthLayout title="Log in to your account">
       <LoginForm
         onSuccess={() => {
           navigate(
-            `${redirectTo ? `${redirectTo}` : paths.app.dashboard.getHref()}`,
+            `${
+              validRedirectTo
+                ? `${validRedirectTo}`
+                : paths.app.dashboard.getHref()
+            }`,
             {
               replace: true,
             },

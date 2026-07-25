@@ -1,4 +1,3 @@
-import Cookies from 'js-cookie';
 import { delay } from 'msw';
 
 import { db } from './db';
@@ -68,18 +67,21 @@ export function authenticate({
   if (user?.password === hash(password)) {
     const sanitizedUser = sanitizeUser(user);
     const encodedToken = encode(sanitizedUser);
-    return { user: sanitizedUser, jwt: encodedToken };
+    return { user: sanitizedUser, token: encodedToken };
   }
 
   const error = new Error('Invalid username or password');
   throw error;
 }
 
-export const AUTH_COOKIE = `zlecero_app_token`;
+export const AUTH_TOKEN_PREFIX = 'Bearer ';
 
-export function requireAuth(cookies: Record<string, string>) {
+export function requireAuth(authorizationHeader: string | null) {
   try {
-    const encodedToken = cookies[AUTH_COOKIE] || Cookies.get(AUTH_COOKIE);
+    const encodedToken = authorizationHeader?.startsWith(AUTH_TOKEN_PREFIX)
+      ? authorizationHeader.slice(AUTH_TOKEN_PREFIX.length)
+      : null;
+
     if (!encodedToken) {
       return { error: 'Unauthorized', user: null };
     }

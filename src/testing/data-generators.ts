@@ -8,9 +8,9 @@ import {
 
 const generateUser = () => ({
   id: randUuid() + Math.random(),
-  firstName: randUserName({ withAccents: false }),
-  lastName: randUserName({ withAccents: false }),
+  name: randUserName({ withAccents: false }),
   email: randEmail(),
+  avatar: 'https://picsum.photos/150/150',
   password: randPassword(),
   role: 'ADMIN',
   bio: randParagraph(),
