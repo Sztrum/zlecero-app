@@ -1,11 +1,18 @@
+import { Button } from '@/components/ui/button';
 import { Order } from '@/types/api';
 import { formatMoney } from '@/utils/format-money';
 
 type OrderDetailProps = {
   order: Order;
+  isChangingStatus?: boolean;
+  onStatusChange?: (status: Order['status']) => void;
 };
 
-export const OrderDetail = ({ order }: OrderDetailProps) => (
+export const OrderDetail = ({
+  order,
+  isChangingStatus = false,
+  onStatusChange,
+}: OrderDetailProps) => (
   <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
     <div className="border bg-white p-4">
       <h2 className="mb-4 text-sm font-semibold text-gray-900">Order Items</h2>
@@ -49,6 +56,31 @@ export const OrderDetail = ({ order }: OrderDetailProps) => (
           />
         </dl>
       </div>
+
+      {order.status !== 'completed' && onStatusChange ? (
+        <div className="border bg-white p-4">
+          <h2 className="mb-4 text-sm font-semibold text-gray-900">Workflow</h2>
+          <div className="grid gap-2">
+            {order.status === 'new' ? (
+              <Button
+                type="button"
+                variant="outline"
+                isLoading={isChangingStatus}
+                onClick={() => onStatusChange('in_progress')}
+              >
+                Start order
+              </Button>
+            ) : null}
+            <Button
+              type="button"
+              isLoading={isChangingStatus}
+              onClick={() => onStatusChange('completed')}
+            >
+              Complete order
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       <div className="border bg-white p-4">
         <h2 className="mb-4 text-sm font-semibold text-gray-900">Terms</h2>

@@ -507,6 +507,65 @@ export const offerHandlers = [
 
     return HttpResponse.json({ status: 200, data: toOrderResponse(order) });
   }),
+
+  http.patch(
+    `${env.API_URL}/orders/:orderId/status`,
+    async ({ params, request }) => {
+      await networkDelay();
+      const { error, company } = requireCompany(
+        request.headers.get('authorization'),
+      );
+
+      if (error || !company) {
+        return HttpResponse.json({ message: error }, { status: 401 });
+      }
+
+      const order = db.order.findFirst({
+        where: {
+          id: { equals: String(params.orderId) },
+          companyId: { equals: company.id },
+        },
+      });
+
+      if (!order) {
+        return HttpResponse.json(
+          { message: 'Order was not found.' },
+          { status: 422 },
+        );
+      }
+
+      const body = (await request.json()) as { status?: string };
+      const nextStatus = body.status;
+      const allowed =
+        nextStatus === order.status ||
+        (order.status === 'new' &&
+          ['in_progress', 'completed'].includes(nextStatus || '')) ||
+        (order.status === 'in_progress' && nextStatus === 'completed');
+
+      if (
+        !allowed ||
+        !['new', 'in_progress', 'completed'].includes(nextStatus || '')
+      ) {
+        return HttpResponse.json(
+          { message: 'This order status change is not allowed.' },
+          { status: 409 },
+        );
+      }
+
+      const updatedAt = new Date().toISOString();
+      const updatedOrder = db.order.update({
+        where: { id: { equals: order.id } },
+        data: { status: nextStatus, updatedAt },
+      });
+
+      await persistDb('order');
+
+      return HttpResponse.json({
+        status: 200,
+        data: toOrderResponse(updatedOrder || order),
+      });
+    },
+  ),
 ];
 
 const updateOfferStatus = async (

@@ -2,12 +2,14 @@ import { Link, useParams } from 'react-router';
 
 import { Button } from '@/components/ui/button';
 import { paths } from '@/config/paths';
-import { useOrder } from '@/features/orders/api/orders';
+import { useChangeOrderStatus, useOrder } from '@/features/orders/api/orders';
 import { OrderDetail } from '@/features/orders/components/order-detail';
+import { OrderStatus } from '@/types/api';
 
 export const AppOrderDetailRoute = () => {
   const { orderId } = useParams();
   const order = useOrder(orderId || '');
+  const changeStatus = useChangeOrderStatus();
 
   if (!orderId) {
     return <div className="text-sm text-red-600">Order route is invalid.</div>;
@@ -34,7 +36,13 @@ export const AppOrderDetailRoute = () => {
           <Link to={paths.app.orders.getHref()}>Back to Orders</Link>
         </Button>
       </div>
-      <OrderDetail order={order.data} />
+      <OrderDetail
+        order={order.data}
+        isChangingStatus={changeStatus.isPending}
+        onStatusChange={(status: OrderStatus) =>
+          changeStatus.mutate({ orderId, status })
+        }
+      />
     </div>
   );
 };
