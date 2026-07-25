@@ -1,6 +1,7 @@
 import {
   Building2,
   Contact,
+  Inbox,
   Home,
   PanelLeft,
   User2,
@@ -92,6 +93,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const navigation: SideNavigationItem[] = [
     { name: 'Dashboard', to: paths.app.dashboard.getHref(), icon: Home },
     { name: 'Customers', to: paths.app.customers.getHref(), icon: Contact },
+    { name: 'Inquiries', to: paths.app.inquiries.getHref(), icon: Inbox },
     { name: 'Company', to: paths.app.company.getHref(), icon: Building2 },
     { name: 'Users', to: paths.app.companyUsers.getHref(), icon: Users },
   ];
