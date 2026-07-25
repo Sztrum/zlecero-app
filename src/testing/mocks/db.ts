@@ -35,6 +35,25 @@ const models = {
     deactivatedAt: String,
     createdAt: Date.now,
   },
+  customer: {
+    id: primaryKey(nanoid),
+    companyId: String,
+    type: String,
+    displayName: String,
+    companyName: nullable(String),
+    firstName: nullable(String),
+    lastName: nullable(String),
+    email: nullable(String),
+    phone: nullable(String),
+    taxNumber: nullable(String),
+    addressLine: nullable(String),
+    postalCode: nullable(String),
+    city: nullable(String),
+    countryCode: String,
+    notes: nullable(String),
+    createdAt: String,
+    updatedAt: String,
+  },
 };
 
 export const db = factory(models);

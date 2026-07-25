@@ -18,6 +18,7 @@ export type Meta = {
 
 export type CompanyUserRole = 'owner' | 'admin' | 'member';
 export type CompanyUserStatus = 'invited' | 'active' | 'deactivated';
+export type CustomerType = 'company' | 'individual';
 
 export type Company = Entity<{
   name: string;
@@ -58,6 +59,40 @@ export type CompanyUser = Entity<{
   status: CompanyUserStatus;
   invitedAt: string | null;
   deactivatedAt: string | null;
+}>;
+
+export type CustomerDuplicate = {
+  id: string;
+  displayName: string;
+  email: string | null;
+  companyName: string | null;
+  taxNumber: string | null;
+};
+
+export type CustomerHistory = {
+  inquiries: unknown[];
+  messages: unknown[];
+  offers: unknown[];
+  orders: unknown[];
+};
+
+export type Customer = Entity<{
+  type: CustomerType;
+  displayName: string;
+  companyName: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
+  phone: string | null;
+  taxNumber: string | null;
+  addressLine: string | null;
+  postalCode: string | null;
+  city: string | null;
+  countryCode: string;
+  notes: string | null;
+  potentialDuplicates: CustomerDuplicate[];
+  history: CustomerHistory | null;
+  updatedAt: string | null;
 }>;
 
 export type ApiResponse<T> = {

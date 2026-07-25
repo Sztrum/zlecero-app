@@ -40,5 +40,13 @@ export const paths = {
       path: 'company/users',
       getHref: () => '/app/company/users',
     },
+    customers: {
+      path: 'customers',
+      getHref: () => '/app/customers',
+    },
+    customerDetail: {
+      path: 'customers/:customerId',
+      getHref: (customerId: string) => `/app/customers/${customerId}`,
+    },
   },
 } as const;
