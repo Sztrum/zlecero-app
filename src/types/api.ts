@@ -245,6 +245,77 @@ export type Order = Entity<{
   updatedAt: string | null;
 }>;
 
+export type DashboardTone = 'primary' | 'info' | 'warning' | 'danger';
+
+export type DashboardCard = {
+  id: string;
+  label: string;
+  value: number;
+  tone: DashboardTone;
+  href?: string;
+};
+
+export type DashboardItem = {
+  id: string;
+  type: 'inquiry' | 'offer' | 'order';
+  label: string;
+  title: string;
+  customerName: string | null;
+  ownerName: string | null;
+  status: string;
+  tone: DashboardTone;
+  dueAt: string | null;
+  href: string;
+};
+
+export type DashboardActivity = {
+  id: string;
+  type: string;
+  label: string;
+  description: string | null;
+  status: string;
+  occurredAt: string;
+  href: string;
+};
+
+export type CompanyDashboard = {
+  filter: { owner: 'all' | 'me' };
+  cards: DashboardCard[];
+  tasksToday: DashboardItem[];
+  attentionItems: DashboardItem[];
+  upcomingDeadlines: DashboardItem[];
+  stats: {
+    activeInquiries: number;
+    sentOffersGrossCents: number;
+    acceptedOffersGrossCents: number;
+    activeOrders: number;
+  };
+  recentActivity: DashboardActivity[];
+};
+
+export type AdminDashboardAlert = {
+  id: string;
+  severity: DashboardTone;
+  label: string;
+  companyName: string;
+  createdAt: string | null;
+};
+
+export type AdminDashboardCompany = {
+  id: string;
+  name: string;
+  slug: string;
+  trialEndsAt: string | null;
+  onboardingCompletedAt: string | null;
+  createdAt: string | null;
+};
+
+export type AdminDashboard = {
+  cards: DashboardCard[];
+  recentCompanies: AdminDashboardCompany[];
+  alerts: AdminDashboardAlert[];
+};
+
 export type ApiResponse<T> = {
   status: number;
   message?: string;

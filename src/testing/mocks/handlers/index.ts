@@ -7,6 +7,7 @@ import { networkDelay } from '../utils';
 import { authHandlers } from './auth';
 import { companyHandlers } from './company';
 import { customerHandlers } from './customers';
+import { dashboardHandlers } from './dashboard';
 import { inquiryHandlers } from './inquiries';
 import { offerHandlers } from './offers';
 
@@ -14,6 +15,7 @@ export const handlers = [
   ...authHandlers,
   ...companyHandlers,
   ...customerHandlers,
+  ...dashboardHandlers,
   ...inquiryHandlers,
   ...offerHandlers,
   http.get(`${env.API_URL}/healthcheck`, async () => {
