@@ -85,6 +85,32 @@ const toInquiryResponse = (inquiry: MockInquiry) => ({
       sentAt: message.sentAt,
       createdAt: message.createdAt,
     })),
+  files: db.inquiryFile
+    .findMany({ where: { inquiryId: { equals: inquiry.id } } })
+    .map((file) => ({
+      id: file.id,
+      source: file.source,
+      originalName: file.originalName,
+      mimeType: file.mimeType,
+      sizeBytes: file.sizeBytes,
+      category: file.category,
+      description: file.description,
+      uploadedByUserId: file.uploadedByUserId,
+      messageId: file.inquiryMessageId,
+      downloadUrl: file.downloadUrl,
+      createdAt: file.createdAt,
+      updatedAt: file.updatedAt,
+    })),
+  notes: db.inquiryNote
+    .findMany({ where: { inquiryId: { equals: inquiry.id } } })
+    .map((note) => ({
+      id: note.id,
+      body: note.body,
+      isInternal: note.isInternal,
+      author: userSummary(note.authorUserId),
+      createdAt: note.createdAt,
+      updatedAt: note.updatedAt,
+    })),
   statusChanges: db.inquiryStatusChange
     .findMany({ where: { inquiryId: { equals: inquiry.id } } })
     .map((change) => ({
@@ -409,7 +435,251 @@ export const inquiryHandlers = [
       });
     },
   ),
+
+  http.post(
+    `${env.API_URL}/inquiries/:inquiryId/files`,
+    async ({ params, request }) => {
+      await networkDelay();
+
+      const { error, company, user } = requireCompany(
+        request.headers.get('authorization'),
+      );
+
+      if (error || !company || !user) {
+        return HttpResponse.json({ message: error }, { status: 401 });
+      }
+
+      const inquiry = findCompanyInquiry(params.inquiryId, company.id);
+
+      if (!inquiry) {
+        return HttpResponse.json(
+          { message: 'Inquiry was not found.' },
+          { status: 422 },
+        );
+      }
+
+      const formData = await request.formData();
+      const file = formData.get('file');
+
+      if (!(file instanceof File) || !isAllowedFile(file)) {
+        return HttpResponse.json({ message: 'Invalid file.' }, { status: 422 });
+      }
+
+      const createdAt = new Date().toISOString();
+      const inquiryFile = db.inquiryFile.create({
+        companyId: company.id,
+        inquiryId: inquiry.id,
+        customerId: inquiry.customerId,
+        inquiryMessageId: null,
+        uploadedByUserId: user.id,
+        source: 'manual',
+        originalName: file.name,
+        mimeType: file.type || null,
+        sizeBytes: file.size,
+        category: String(formData.get('category') || '') || null,
+        description: String(formData.get('description') || '') || null,
+        downloadUrl: '',
+        createdAt,
+        updatedAt: createdAt,
+      });
+      db.inquiryFile.update({
+        where: { id: { equals: inquiryFile.id } },
+        data: {
+          downloadUrl: `/api/v1/inquiries/${inquiry.id}/files/${inquiryFile.id}/download`,
+        },
+      });
+
+      const updatedInquiry = db.inquiry.update({
+        where: { id: { equals: inquiry.id } },
+        data: { updatedAt: createdAt },
+      });
+
+      await persistDb('inquiry');
+      await persistDb('inquiryFile');
+
+      return HttpResponse.json(
+        { status: 201, data: toInquiryResponse(updatedInquiry || inquiry) },
+        { status: 201 },
+      );
+    },
+  ),
+
+  http.get(
+    `${env.API_URL}/inquiries/:inquiryId/files/:fileId/download`,
+    async ({ params, request }) => {
+      await networkDelay();
+
+      const { error, company } = requireCompany(
+        request.headers.get('authorization'),
+      );
+
+      if (error || !company) {
+        return HttpResponse.json({ message: error }, { status: 401 });
+      }
+
+      const file = db.inquiryFile.findFirst({
+        where: {
+          inquiryId: { equals: String(params.inquiryId) },
+          id: { equals: String(params.fileId) },
+          companyId: { equals: company.id },
+        },
+      });
+
+      if (!file) {
+        return HttpResponse.json(
+          { message: 'Inquiry was not found.' },
+          { status: 422 },
+        );
+      }
+
+      return new HttpResponse('mock file', {
+        headers: {
+          'Content-Type': file.mimeType || 'application/octet-stream',
+          'Content-Disposition': `attachment; filename="${file.originalName}"`,
+        },
+      });
+    },
+  ),
+
+  http.post(
+    `${env.API_URL}/inquiries/:inquiryId/notes`,
+    async ({ params, request }) => {
+      await networkDelay();
+
+      const { error, company, user } = requireCompany(
+        request.headers.get('authorization'),
+      );
+
+      if (error || !company || !user) {
+        return HttpResponse.json({ message: error }, { status: 401 });
+      }
+
+      const inquiry = findCompanyInquiry(params.inquiryId, company.id);
+
+      if (!inquiry) {
+        return HttpResponse.json(
+          { message: 'Inquiry was not found.' },
+          { status: 422 },
+        );
+      }
+
+      const body = (await request.json()) as Record<string, string | null>;
+      const createdAt = new Date().toISOString();
+      db.inquiryNote.create({
+        companyId: company.id,
+        inquiryId: inquiry.id,
+        authorUserId: user.id,
+        body: body.body || '',
+        isInternal: true,
+        createdAt,
+        updatedAt: createdAt,
+      });
+
+      const updatedInquiry = db.inquiry.update({
+        where: { id: { equals: inquiry.id } },
+        data: { updatedAt: createdAt },
+      });
+
+      await persistDb('inquiry');
+      await persistDb('inquiryNote');
+
+      return HttpResponse.json({
+        status: 200,
+        data: toInquiryResponse(updatedInquiry || inquiry),
+      });
+    },
+  ),
+
+  http.patch(
+    `${env.API_URL}/inquiries/:inquiryId/owner`,
+    async ({ params, request }) => {
+      await networkDelay();
+
+      const { error, company, user } = requireCompany(
+        request.headers.get('authorization'),
+      );
+
+      if (error || !company || !user) {
+        return HttpResponse.json({ message: error }, { status: 401 });
+      }
+
+      if (user.role !== 'owner' && user.role !== 'admin') {
+        return HttpResponse.json({ message: 'Forbidden' }, { status: 403 });
+      }
+
+      const inquiry = findCompanyInquiry(params.inquiryId, company.id);
+
+      if (!inquiry) {
+        return HttpResponse.json(
+          { message: 'Inquiry was not found.' },
+          { status: 422 },
+        );
+      }
+
+      const body = (await request.json()) as Record<string, string | null>;
+      const ownerUserId = body.owner_user_id || null;
+      const createdAt = new Date().toISOString();
+      const updatedInquiry = db.inquiry.update({
+        where: { id: { equals: inquiry.id } },
+        data: { ownerUserId, updatedAt: createdAt },
+      });
+
+      if (inquiry.ownerUserId !== ownerUserId) {
+        db.inquiryNote.create({
+          companyId: company.id,
+          inquiryId: inquiry.id,
+          authorUserId: user.id,
+          body: `Owner changed from ${inquiry.ownerUserId || 'unassigned'} to ${ownerUserId || 'unassigned'}.`,
+          isInternal: true,
+          createdAt,
+          updatedAt: createdAt,
+        });
+      }
+
+      await persistDb('inquiry');
+      await persistDb('inquiryNote');
+
+      return HttpResponse.json({
+        status: 200,
+        data: toInquiryResponse(updatedInquiry || inquiry),
+      });
+    },
+  ),
 ];
+
+const allowedFileExtensions = [
+  'csv',
+  'doc',
+  'docx',
+  'dwg',
+  'dxf',
+  'jpeg',
+  'jpg',
+  'pdf',
+  'png',
+  'txt',
+  'webp',
+  'xls',
+  'xlsx',
+];
+
+const isAllowedFile = (file: File) => {
+  if (file.size > 20 * 1024 * 1024) {
+    return false;
+  }
+
+  const extension = file.name.split('.').pop()?.toLowerCase();
+
+  return extension ? allowedFileExtensions.includes(extension) : false;
+};
+
+const findCompanyInquiry = (inquiryId: unknown, companyId: string) =>
+  db.inquiry.findFirst({
+    where: {
+      id: { equals: String(inquiryId) },
+      companyId: { equals: companyId },
+    },
+  });
 
 const toggleArchive = async (
   inquiryId: unknown,
