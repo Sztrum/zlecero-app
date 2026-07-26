@@ -4,7 +4,6 @@ import {
   ClipboardList,
   Contact,
   FileText,
-  Gauge,
   Home,
   Inbox,
   LogOut,
@@ -95,7 +94,6 @@ const Progress = () => {
 
 const navigation: SideNavigationItem[] = [
   { name: 'Pulpit', to: paths.app.dashboard.getHref(), icon: Home },
-  { name: 'Admin', to: paths.app.admin.getHref(), icon: Gauge },
   { name: 'Klienci', to: paths.app.customers.getHref(), icon: Contact },
   {
     name: 'Zapytania',
