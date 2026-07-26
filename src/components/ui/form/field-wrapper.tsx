@@ -19,10 +19,10 @@ export type FieldWrapperPassThroughProps = Omit<
 export const FieldWrapper = (props: FieldWrapperProps) => {
   const { label, error, children } = props;
   return (
-    <div>
+    <div className="space-y-1.5">
       <Label>
         {label}
-        <div className="mt-1">{children}</div>
+        <div>{children}</div>
       </Label>
       <Error errorMessage={error?.message} />
     </div>

@@ -26,13 +26,13 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
           <>
             <Input
               type="email"
-              label="Email Address"
+              label="E-mail"
               error={formState.errors['email']}
               registration={register('email')}
             />
             <Input
               type="password"
-              label="Password"
+              label="Hasło"
               error={formState.errors['password']}
               registration={register('password')}
             />
@@ -42,7 +42,7 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
                 type="submit"
                 className="w-full"
               >
-                Log in
+                Zaloguj się
               </Button>
             </div>
           </>
@@ -52,9 +52,9 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
         <div className="text-sm">
           <Link
             to={paths.auth.register.getHref()}
-            className="font-medium text-blue-600 hover:text-blue-500"
+            className="font-medium text-primary hover:text-primary/80"
           >
-            Register
+            Utwórz konto
           </Link>
         </div>
       </div>

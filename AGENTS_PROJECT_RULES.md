@@ -1,7 +1,7 @@
 # AGENTS_PROJECT_RULES.md
 
 ## Version
-v2.4.0
+v2.5.0
 
 ## Scope
 Repository-specific rules for the Zlecero React application project initialized from the `bulletproof-react` approach.
@@ -89,6 +89,7 @@ Read documents in this exact order before implementation:
 - Build reusable UI primitives in `src/components/ui/**`.
 - Wrap third-party UI primitives before widespread app usage so project styling and accessibility behavior stay consistent.
 - Prefer Radix/headless primitives, lucide icons, Tailwind utilities, and class composition helpers if the project is initialized from the Vite `bulletproof-react` stack.
+- Preserve the current Zlecero reference visual direction unless the user explicitly asks for a redesign: warm cream background `#FAF5ED`, dark brown structural surfaces `#33251D`, brick primary `#9C442D`, white product/dashboard cards, 8px default radius, restrained brown-tinted shadows, Inter body typography, Plus Jakarta Sans display typography, compact navigation, and dashboard-like product preview patterns.
 - Keep layout components in `src/components/layouts/**` or a similarly explicit shared location.
 - Add Storybook stories for shared UI primitives when Storybook is present or introduced.
 - Keep feature-specific components inside the owning feature unless they become stable reusable primitives.

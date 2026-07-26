@@ -28,42 +28,42 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
           <>
             <Input
               type="text"
-              label="Name"
+              label="Imię i nazwisko"
               error={formState.errors['name']}
               registration={register('name')}
             />
             <Input
               type="email"
-              label="Email Address"
+              label="E-mail"
               error={formState.errors['email']}
               registration={register('email')}
             />
             <Input
               type="text"
-              label="Company Name"
+              label="Nazwa firmy"
               error={formState.errors['companyName']}
               registration={register('companyName')}
             />
             <Input
               type="password"
-              label="Password"
+              label="Hasło"
               error={formState.errors['password']}
               registration={register('password')}
             />
             <Input
               type="password"
-              label="Confirm Password"
+              label="Powtórz hasło"
               error={formState.errors['passwordConfirmation']}
               registration={register('passwordConfirmation')}
             />
-            <label className="flex items-start gap-3 text-sm text-gray-700">
+            <label className="flex items-start gap-3 text-sm text-[#33251D]">
               <input
                 type="checkbox"
                 className="mt-1"
                 {...register('termsAccepted')}
               />
               <span>
-                I accept the required terms for creating a company account.
+                Akceptuję warunki wymagane do utworzenia konta firmowego.
               </span>
             </label>
             {formState.errors['termsAccepted'] ? (
@@ -77,7 +77,7 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
                 type="submit"
                 className="w-full"
               >
-                Register
+                Utwórz konto
               </Button>
             </div>
           </>
@@ -87,9 +87,9 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
         <div className="text-sm">
           <Link
             to={paths.auth.login.getHref()}
-            className="font-medium text-blue-600 hover:text-blue-500"
+            className="font-medium text-primary hover:text-primary/80"
           >
-            Log In
+            Zaloguj się
           </Link>
         </div>
       </div>
