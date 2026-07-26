@@ -4,12 +4,22 @@ import { z } from 'zod';
 
 import { Spinner } from '@/components/ui/spinner';
 import { paths } from '@/config/paths';
-import { ApiResponse, AuthTokenResponse, User } from '@/types/api';
+import {
+  ApiResponse,
+  AuthTokenResponse,
+  User,
+  VerifyEmailResponse,
+} from '@/types/api';
 
 import { api } from './api-client';
 import { authToken } from './auth-token';
 
 // API call definitions for auth are shared because auth is used across routes and features.
+
+const emailSchema = z.preprocess(
+  (value) => (typeof value === 'string' ? value.trim().toLowerCase() : value),
+  z.string().min(1, 'Required').email('Invalid email'),
+);
 
 const getUser = async (): Promise<User> => {
   const response = await api.get<unknown, ApiResponse<User>>('/auth/profile');
@@ -26,7 +36,7 @@ const logout = async (): Promise<void> => {
 };
 
 export const loginInputSchema = z.object({
-  email: z.string().min(1, 'Required').email('Invalid email'),
+  email: emailSchema,
   password: z.string().min(5, 'Required'),
 });
 
@@ -39,7 +49,7 @@ const loginWithEmailAndPassword = (
 
 export const registerInputSchema = z
   .object({
-    email: z.string().min(1, 'Required').email('Invalid email'),
+    email: emailSchema,
     name: z.string().min(1, 'Required'),
     password: z.string().min(8, 'Password must contain at least 8 characters'),
     passwordConfirmation: z.string().min(8, 'Required'),
@@ -67,6 +77,27 @@ export const registerUser = (
       terms_accepted: data.termsAccepted,
     },
   );
+};
+
+export const verifyEmail = ({
+  userId,
+  hash,
+}: {
+  userId: string;
+  hash: string;
+}): Promise<ApiResponse<VerifyEmailResponse>> => {
+  return api
+    .post<
+      unknown,
+      ApiResponse<{ user_id: string; remember_token: string }>
+    >(`/auth/verify-email/${userId}/email/verify/${hash}`)
+    .then((response) => ({
+      ...response,
+      data: {
+        userId: response.data.user_id,
+        rememberToken: response.data.remember_token,
+      },
+    }));
 };
 
 const authConfig = {

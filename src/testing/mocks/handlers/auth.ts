@@ -109,6 +109,37 @@ export const authHandlers = [
     }
   }),
 
+  http.post(
+    `${env.API_URL}/auth/verify-email/:userId/email/verify/:hash`,
+    async ({ params }) => {
+      await networkDelay();
+
+      const user = db.user.findFirst({
+        where: {
+          id: {
+            equals: String(params.userId),
+          },
+        },
+      });
+
+      if (!user || String(params.hash).length === 0) {
+        return HttpResponse.json(
+          { message: 'Invalid email verification hash.' },
+          { status: 422 },
+        );
+      }
+
+      return HttpResponse.json({
+        status: 200,
+        message: 'Email verified.',
+        data: {
+          user_id: user.id,
+          remember_token: 'mock-remember-token',
+        },
+      });
+    },
+  ),
+
   http.post(`${env.API_URL}/auth/logout`, async () => {
     await networkDelay();
 

@@ -15,7 +15,10 @@ test('should login new user and call onSuccess cb which should navigate the user
 
   await renderApp(<LoginForm onSuccess={onSuccess} />, { user: null });
 
-  await userEvent.type(screen.getByLabelText(/e-mail/i), newUser.email);
+  await userEvent.type(
+    screen.getByLabelText(/e-mail/i),
+    `  ${newUser.email.toUpperCase()}  `,
+  );
   await userEvent.type(screen.getByLabelText(/hasło/i), newUser.password);
 
   await userEvent.click(screen.getByRole('button', { name: /zaloguj się/i }));

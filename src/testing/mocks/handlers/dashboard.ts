@@ -49,7 +49,7 @@ const inquiryItem = (
   status: inquiry.status,
   tone,
   dueAt: inquiry.responseDueAt,
-  href: `/app/inquiries/${inquiry.id}`,
+  href: `/app/inquiries?inquiry=${inquiry.id}`,
 });
 
 const offerItem = (
@@ -224,7 +224,7 @@ export const dashboardHandlers = [
             description: change.inquiryId,
             status: change.toStatus,
             occurredAt: change.changedAt,
-            href: `/app/inquiries/${change.inquiryId}`,
+            href: `/app/inquiries?inquiry=${change.inquiryId}`,
           })),
       },
     });

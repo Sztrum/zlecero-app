@@ -17,6 +17,24 @@ export const paths = {
       path: '/auth/login',
       getHref: () => '/auth/login',
     },
+    verifyEmail: {
+      path: '/auth/verify-email',
+      getHref: (params?: { userId?: string; hash?: string }) => {
+        const search = new URLSearchParams();
+
+        if (params?.userId) {
+          search.set('user_id', params.userId);
+        }
+
+        if (params?.hash) {
+          search.set('hash', params.hash);
+        }
+
+        const query = search.toString();
+
+        return query ? `/auth/verify-email?${query}` : '/auth/verify-email';
+      },
+    },
   },
 
   app: {
@@ -54,11 +72,21 @@ export const paths = {
     },
     inquiries: {
       path: 'inquiries',
-      getHref: () => '/app/inquiries',
-    },
-    inquiryDetail: {
-      path: 'inquiries/:inquiryId',
-      getHref: (inquiryId: string) => `/app/inquiries/${inquiryId}`,
+      getHref: (params?: { inquiryId?: string; queue?: string }) => {
+        const search = new URLSearchParams();
+
+        if (params?.inquiryId) {
+          search.set('inquiry', params.inquiryId);
+        }
+
+        if (params?.queue) {
+          search.set('queue', params.queue);
+        }
+
+        const query = search.toString();
+
+        return query ? `/app/inquiries?${query}` : '/app/inquiries';
+      },
     },
     offers: {
       path: 'offers',
