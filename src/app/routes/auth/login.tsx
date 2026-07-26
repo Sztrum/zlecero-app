@@ -8,7 +8,10 @@ const LoginRoute = () => {
   const navigate = useNavigate();
 
   return (
-    <AuthLayout title="Log in to your account">
+    <AuthLayout
+      title="Wróć do pracy nad zapytaniami, ofertami i klientami."
+      subtitle="Po zalogowaniu zobaczysz najważniejsze sprawy zespołu i terminy wymagające reakcji."
+    >
       <LoginForm
         onSuccess={() => {
           navigate(paths.app.dashboard.getHref(), {

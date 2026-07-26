@@ -13,10 +13,10 @@ const AdminDashboardRoute = () => {
     <ContentLayout title="Panel administratora">
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-950">
+          <h1 className="text-2xl font-bold text-[#33251D]">
             Stan platformy Zlecero
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             Podstawowe metryki firm, triali i działań administracyjnych.
           </p>
         </div>

@@ -10,20 +10,17 @@ test('should register new user and call onSuccess cb which should navigate the u
 
   await renderApp(<RegisterForm onSuccess={onSuccess} />, { user: null });
 
-  await userEvent.type(screen.getByLabelText(/^name$/i), newUser.name);
-  await userEvent.type(screen.getByLabelText(/email address/i), newUser.email);
+  await userEvent.type(screen.getByLabelText(/imię i nazwisko/i), newUser.name);
+  await userEvent.type(screen.getByLabelText(/e-mail/i), newUser.email);
+  await userEvent.type(screen.getByLabelText(/nazwa firmy/i), 'Zlecero Studio');
+  await userEvent.type(screen.getByLabelText(/^hasło$/i), 'ZleceroTest123!');
   await userEvent.type(
-    screen.getByLabelText(/company name/i),
-    'Zlecero Studio',
-  );
-  await userEvent.type(screen.getByLabelText(/^password$/i), 'ZleceroTest123!');
-  await userEvent.type(
-    screen.getByLabelText(/confirm password/i),
+    screen.getByLabelText(/powtórz hasło/i),
     'ZleceroTest123!',
   );
-  await userEvent.click(screen.getByLabelText(/required terms/i));
+  await userEvent.click(screen.getByLabelText(/akceptuję warunki/i));
 
-  await userEvent.click(screen.getByRole('button', { name: /register/i }));
+  await userEvent.click(screen.getByRole('button', { name: /utwórz konto/i }));
 
   await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1));
 });

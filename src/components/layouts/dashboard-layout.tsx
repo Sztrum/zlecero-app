@@ -1,20 +1,24 @@
 import {
+  Bell,
   Building2,
   ClipboardList,
   Contact,
   FileText,
   Gauge,
-  Inbox,
   Home,
-  PanelLeft,
+  Inbox,
+  LogOut,
+  Menu,
+  PanelLeftClose,
+  Search,
   User2,
   Users,
+  Zap,
   type LucideIcon,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { NavLink, useNavigate, useNavigation } from 'react-router';
 
-import logo from '@/assets/logo.svg';
 import { Button } from '@/components/ui/button';
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { paths } from '@/config/paths';
@@ -34,23 +38,28 @@ type SideNavigationItem = {
   name: string;
   to: string;
   icon: LucideIcon;
+  badge?: string;
 };
 
-const Logo = () => {
+const Logo = ({ dark = false }: { dark?: boolean }) => {
   return (
     <Link
-      className="flex items-center gap-2 text-white"
+      className={cn(
+        'flex items-center gap-2.5 font-display text-sm font-bold',
+        dark ? 'text-white' : 'text-[#33251D]',
+      )}
       to={paths.home.getHref()}
     >
-      <img className="h-8 w-auto" src={logo} alt="Zlecero" />
-      <span className="text-sm font-semibold text-white">Zlecero</span>
+      <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+        <Zap className="size-4" />
+      </span>
+      <span>Zlecero</span>
     </Link>
   );
 };
 
 const Progress = () => {
   const { state, location } = useNavigation();
-
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -61,10 +70,6 @@ const Progress = () => {
     if (state === 'loading') {
       const timer = setInterval(() => {
         setProgress((oldProgress) => {
-          if (oldProgress === 100) {
-            clearInterval(timer);
-            return 100;
-          }
           const newProgress = oldProgress + 10;
           return newProgress > 100 ? 100 : newProgress;
         });
@@ -82,133 +87,158 @@ const Progress = () => {
 
   return (
     <div
-      className="fixed left-0 top-0 h-1 bg-blue-500 transition-all duration-200 ease-in-out"
+      className="fixed left-0 top-0 z-50 h-1 bg-primary transition-all duration-200 ease-in-out"
       style={{ width: `${progress}%` }}
-    ></div>
+    />
   );
 };
+
+const navigation: SideNavigationItem[] = [
+  { name: 'Pulpit', to: paths.app.dashboard.getHref(), icon: Home },
+  { name: 'Admin', to: paths.app.admin.getHref(), icon: Gauge },
+  { name: 'Klienci', to: paths.app.customers.getHref(), icon: Contact },
+  {
+    name: 'Zapytania',
+    to: paths.app.inquiries.getHref(),
+    icon: Inbox,
+    badge: '3',
+  },
+  { name: 'Oferty', to: paths.app.offers.getHref(), icon: FileText },
+  { name: 'Zlecenia', to: paths.app.orders.getHref(), icon: ClipboardList },
+  { name: 'Firma', to: paths.app.company.getHref(), icon: Building2 },
+  { name: 'Użytkownicy', to: paths.app.companyUsers.getHref(), icon: Users },
+];
+
+const NavigationLinks = ({ dark = false }: { dark?: boolean }) => (
+  <nav className="space-y-1">
+    {navigation.map((item) => (
+      <NavLink
+        key={item.name}
+        to={item.to}
+        end
+        className={({ isActive }) =>
+          cn(
+            'group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+            dark
+              ? 'text-white/55 hover:bg-white/10 hover:text-white'
+              : 'text-muted-foreground hover:bg-[#FAF5ED] hover:text-[#33251D]',
+            isActive &&
+              (dark
+                ? 'bg-primary/30 text-white'
+                : 'bg-primary/10 text-primary'),
+          )
+        }
+      >
+        <item.icon className="size-4 shrink-0" aria-hidden="true" />
+        <span className="min-w-0 flex-1 truncate">{item.name}</span>
+        {item.badge ? (
+          <span className="flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
+            {item.badge}
+          </span>
+        ) : null}
+      </NavLink>
+    ))}
+  </nav>
+);
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const logout = useLogout({
     onSuccess: () => navigate(paths.auth.login.getHref()),
   });
-  const navigation: SideNavigationItem[] = [
-    { name: 'Dashboard', to: paths.app.dashboard.getHref(), icon: Home },
-    { name: 'Admin', to: paths.app.admin.getHref(), icon: Gauge },
-    { name: 'Customers', to: paths.app.customers.getHref(), icon: Contact },
-    { name: 'Inquiries', to: paths.app.inquiries.getHref(), icon: Inbox },
-    { name: 'Offers', to: paths.app.offers.getHref(), icon: FileText },
-    { name: 'Orders', to: paths.app.orders.getHref(), icon: ClipboardList },
-    { name: 'Company', to: paths.app.company.getHref(), icon: Building2 },
-    { name: 'Users', to: paths.app.companyUsers.getHref(), icon: Users },
-  ];
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <aside className="fixed inset-y-0 left-0 z-10 hidden w-60 flex-col border-r bg-black sm:flex">
-        <nav className="flex flex-col items-center gap-4 px-2 py-4">
-          <div className="flex h-16 shrink-0 items-center px-4">
-            <Logo />
-          </div>
-          {navigation.map((item) => (
-            <NavLink
-              key={item.name}
-              to={item.to}
-              end
-              className={({ isActive }) =>
-                cn(
-                  'text-gray-300 hover:bg-gray-700 hover:text-white',
-                  'group flex flex-1 w-full items-center rounded-md p-2 text-base font-medium',
-                  isActive && 'bg-gray-900 text-white',
-                )
-              }
+    <div className="flex min-h-screen bg-[#FAF5ED] text-[#33251D]">
+      <Progress />
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r border-[#EADBCD] bg-white lg:flex">
+        <div className="flex h-16 shrink-0 items-center border-b border-[#EADBCD] px-5">
+          <Logo />
+        </div>
+        <div className="flex-1 overflow-y-auto px-3 py-4">
+          <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Menu główne
+          </p>
+          <NavigationLinks />
+        </div>
+        <div className="border-t border-[#EADBCD] p-3">
+          <div className="flex items-center gap-2.5 rounded-lg p-2">
+            <span className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+              AN
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-semibold">Agnieszka Nowak</p>
+              <p className="truncate text-[10px] text-muted-foreground">
+                Professional
+              </p>
+            </div>
+            <button
+              type="button"
+              className="rounded-md p-1.5 text-muted-foreground transition hover:bg-[#FAF5ED] hover:text-[#33251D]"
+              onClick={() => logout.mutate({})}
             >
-              <item.icon
-                className={cn(
-                  'text-gray-400 group-hover:text-gray-300',
-                  'mr-4 size-6 shrink-0',
-                )}
-                aria-hidden="true"
-              />
-              {item.name}
-            </NavLink>
-          ))}
-        </nav>
+              <LogOut className="size-4" />
+              <span className="sr-only">Wyloguj</span>
+            </button>
+          </div>
+        </div>
       </aside>
-      <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-60">
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:justify-end sm:border-0 sm:bg-transparent sm:px-6">
-          <Progress />
+
+      <div className="flex min-w-0 flex-1 flex-col lg:pl-60">
+        <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-[#EADBCD] bg-white px-4 lg:px-6">
           <Drawer>
             <DrawerTrigger asChild>
-              <Button size="icon" variant="outline" className="sm:hidden">
-                <PanelLeft className="size-5" />
-                <span className="sr-only">Toggle Menu</span>
+              <Button size="icon" variant="outline" className="lg:hidden">
+                <Menu className="size-5" />
+                <span className="sr-only">Otwórz menu</span>
               </Button>
             </DrawerTrigger>
-            <DrawerContent
-              side="left"
-              className="bg-black pt-10 text-white sm:max-w-60"
-            >
-              <nav className="grid gap-6 text-lg font-medium">
-                <div className="flex h-16 shrink-0 items-center px-4">
-                  <Logo />
-                </div>
-                {navigation.map((item) => (
-                  <NavLink
-                    key={item.name}
-                    to={item.to}
-                    end
-                    className={({ isActive }) =>
-                      cn(
-                        'text-gray-300 hover:bg-gray-700 hover:text-white',
-                        'group flex flex-1 w-full items-center rounded-md p-2 text-base font-medium',
-                        isActive && 'bg-gray-900 text-white',
-                      )
-                    }
-                  >
-                    <item.icon
-                      className={cn(
-                        'text-gray-400 group-hover:text-gray-300',
-                        'mr-4 size-6 shrink-0',
-                      )}
-                      aria-hidden="true"
-                    />
-                    {item.name}
-                  </NavLink>
-                ))}
-              </nav>
+            <DrawerContent side="left" className="max-w-72 bg-white p-0">
+              <div className="flex h-16 items-center justify-between border-b border-[#EADBCD] px-5">
+                <Logo />
+                <PanelLeftClose className="size-4 text-muted-foreground" />
+              </div>
+              <div className="px-3 py-4">
+                <NavigationLinks />
+              </div>
             </DrawerContent>
           </Drawer>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="overflow-hidden rounded-full"
-              >
-                <span className="sr-only">Open user menu</span>
-                <User2 className="size-6 rounded-full" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => navigate(paths.app.profile.getHref())}
-                className={cn('block px-4 py-2 text-sm text-gray-700')}
-              >
-                Your Profile
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className={cn('block px-4 py-2 text-sm text-gray-700 w-full')}
-                onClick={() => logout.mutate({})}
-              >
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+
+          <div className="hidden max-w-sm flex-1 items-center gap-2 rounded-lg border border-[#EADBCD] bg-[#FAF5ED] px-3 py-2 md:flex">
+            <Search className="size-4 text-muted-foreground" />
+            <input
+              aria-label="Szukaj"
+              className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              placeholder="Szukaj zapytań, klientów..."
+              type="search"
+            />
+          </div>
+
+          <div className="ml-auto flex items-center gap-2">
+            <Button variant="ghost" size="icon" aria-label="Powiadomienia">
+              <Bell className="size-5" />
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="rounded-full">
+                  <span className="sr-only">Otwórz menu użytkownika</span>
+                  <User2 className="size-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => navigate(paths.app.profile.getHref())}
+                >
+                  Profil
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => logout.mutate({})}>
+                  Wyloguj
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </header>
-        <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+        <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8">
           {children}
         </main>
       </div>

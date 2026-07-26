@@ -8,7 +8,10 @@ const RegisterRoute = () => {
   const navigate = useNavigate();
 
   return (
-    <AuthLayout title="Register your account">
+    <AuthLayout
+      title="Utwórz firmowe centrum obsługi zapytań i ofert."
+      subtitle="Zacznij od konta firmowego, a konfigurację procesu dopracujesz później w panelu."
+    >
       <RegisterForm
         onSuccess={() => {
           navigate(paths.auth.login.getHref(), {

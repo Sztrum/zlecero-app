@@ -19,22 +19,22 @@ const DashboardRoute = () => {
       <div className="space-y-6">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
           <div>
-            <h1 className="text-2xl font-bold text-gray-950">
+            <h1 className="text-2xl font-bold text-[#33251D]">
               Dzień dobry, {user.data?.name ?? 'użytkowniku'}
             </h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-muted-foreground">
               Najważniejsze zapytania, oferty i zlecenia wymagające działania.
             </p>
           </div>
-          <div className="inline-flex rounded-lg border bg-white p-1">
+          <div className="inline-flex rounded-lg border border-[#EADBCD] bg-white p-1">
             {(['all', 'me'] as const).map((value) => (
               <button
                 key={value}
                 type="button"
                 className={`rounded-md px-3 py-1.5 text-sm font-medium ${
                   owner === value
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-50'
+                    ? 'bg-primary text-white'
+                    : 'text-muted-foreground hover:bg-[#FAF5ED]'
                 }`}
                 onClick={() => setOwner(value)}
               >
