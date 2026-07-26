@@ -40,6 +40,11 @@ export const createAppRouter = (queryClient: QueryClient) =>
       element: <Navigate to={paths.auth.login.getHref()} replace />,
     },
     {
+      path: paths.auth.verifyEmail.path,
+      lazy: () =>
+        import('./routes/auth/verify-email').then(convert(queryClient)),
+    },
+    {
       path: paths.app.root.path,
       element: (
         <ProtectedRoute>

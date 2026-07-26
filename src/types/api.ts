@@ -325,3 +325,8 @@ export type ApiResponse<T> = {
 export type AuthTokenResponse = {
   token: string;
 };
+
+export type VerifyEmailResponse = {
+  userId: string;
+  rememberToken: string;
+};

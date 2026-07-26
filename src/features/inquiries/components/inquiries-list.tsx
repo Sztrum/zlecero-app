@@ -1,29 +1,29 @@
 import {
-  Clock,
   Download,
   Eye,
   FileText,
-  Layers,
   MoreHorizontal,
   Plus,
-  RefreshCw,
-  Send,
-  Sparkles,
   UserCheck,
-  Users,
   X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
+import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { Spinner } from '@/components/ui/spinner';
-import { Inquiry, InquiryPriority, InquiryStatus } from '@/types/api';
+import { env } from '@/config/env';
+import { Inquiry, InquiryPriority, InquiryStatus, Offer } from '@/types/api';
 import { cn } from '@/utils/cn';
+import { formatMoney } from '@/utils/format-money';
 
 import { InquiryFilters, useInquiries } from '../api/inquiries';
+import { useInquiryOffers } from '../api/linked-offers';
 
 type InquiriesListProps = {
   filters?: InquiryFilters;
+  initialInquiryId?: string | null;
   query?: string;
+  onSelectedInquiryChange?: (inquiryId: string | null) => void;
 };
 
 const statusLabels: Record<InquiryStatus, string> = {
@@ -62,12 +62,23 @@ const priorityClasses: Record<InquiryPriority, string> = {
   low: 'bg-gray-100 text-gray-500',
 };
 
+const downloadHref = (downloadUrl: string) =>
+  new URL(downloadUrl, env.API_URL.replace(/\/api\/v1\/?$/, '')).toString();
+
 export const InquiriesList = ({
   filters = {},
+  initialInquiryId = null,
   query = '',
+  onSelectedInquiryChange,
 }: InquiriesListProps) => {
   const inquiries = useInquiries(filters);
-  const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
+  const [selectedInquiryId, setSelectedInquiryId] = useState<string | null>(
+    initialInquiryId,
+  );
+  const [isInquiryDrawerOpen, setIsInquiryDrawerOpen] = useState(
+    Boolean(initialInquiryId),
+  );
+  const closeTimerRef = useRef<number | null>(null);
   const normalizedQuery = query.trim().toLocaleLowerCase('pl-PL');
   const visibleInquiries = (inquiries.data ?? []).filter((inquiry) => {
     if (!normalizedQuery) {
@@ -87,6 +98,55 @@ export const InquiriesList = ({
       .toLocaleLowerCase('pl-PL')
       .includes(normalizedQuery);
   });
+  const selectedInquiry =
+    inquiries.data?.find((inquiry) => inquiry.id === selectedInquiryId) ?? null;
+
+  useEffect(() => {
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+
+    setSelectedInquiryId(initialInquiryId);
+    setIsInquiryDrawerOpen(Boolean(initialInquiryId));
+  }, [initialInquiryId]);
+
+  useEffect(
+    () => () => {
+      if (closeTimerRef.current) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  const closeInquiryDrawer = () => {
+    setIsInquiryDrawerOpen(false);
+
+    closeTimerRef.current = window.setTimeout(() => {
+      setSelectedInquiryId(null);
+      onSelectedInquiryChange?.(null);
+      closeTimerRef.current = null;
+    }, 300);
+  };
+
+  const selectInquiry = (inquiry: Inquiry | null) => {
+    const inquiryId = inquiry?.id ?? null;
+
+    if (!inquiryId) {
+      closeInquiryDrawer();
+      return;
+    }
+
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+
+    setSelectedInquiryId(inquiryId);
+    setIsInquiryDrawerOpen(true);
+    onSelectedInquiryChange?.(inquiryId);
+  };
 
   if (inquiries.isLoading) {
     return (
@@ -137,7 +197,7 @@ export const InquiriesList = ({
                 <InquiryRow
                   key={inquiry.id}
                   inquiry={inquiry}
-                  onSelect={setSelectedInquiry}
+                  onSelect={selectInquiry}
                 />
               ))}
               {visibleInquiries.length === 0 ? (
@@ -157,7 +217,8 @@ export const InquiriesList = ({
       {selectedInquiry ? (
         <InquiryDrawer
           inquiry={selectedInquiry}
-          onClose={() => setSelectedInquiry(null)}
+          open={isInquiryDrawerOpen}
+          onClose={closeInquiryDrawer}
         />
       ) : null}
     </>
@@ -243,32 +304,36 @@ const InquiryRow = ({
 
 const InquiryDrawer = ({
   inquiry,
+  open,
   onClose,
 }: {
   inquiry: Inquiry;
+  open: boolean;
   onClose: () => void;
 }) => {
-  const [tab, setTab] = useState<'inquiry' | 'offers' | 'history' | 'note'>(
+  const [tab, setTab] = useState<'inquiry' | 'messages' | 'files' | 'offers'>(
     'inquiry',
   );
-  const [note, setNote] = useState('');
-  const [replyText, setReplyText] = useState('');
+  const offers = useInquiryOffers(inquiry.id);
 
   const customerName = inquiry.customer?.displayName ?? 'Klient';
-  const customerEmail = inquiry.customer?.email ?? 'kontakt@firma.pl';
+  const customerEmail = inquiry.customer?.email ?? '-';
   const ownerName = inquiry.owner?.name ?? 'Nieprzypisane';
-  const linkedOffers = buildLinkedOffers(inquiry);
-  const timeline = buildTimeline(inquiry, customerName, ownerName);
+  const linkedOffers = offers.data ?? [];
 
   return (
-    <div className="fixed inset-0 z-30 flex justify-end">
-      <button
-        aria-label="Zamknij szczegóły zapytania"
-        className="absolute inset-0 bg-black/30"
-        type="button"
-        onClick={onClose}
-      />
-      <aside className="relative flex size-full max-w-4xl flex-col bg-white shadow-2xl">
+    <Drawer
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
+          onClose();
+        }
+      }}
+    >
+      <DrawerContent
+        side="right"
+        className="flex h-full w-[min(96vw,88rem)] max-w-none flex-col overflow-hidden border-[#EADBCD] bg-white p-0 shadow-2xl sm:max-w-none"
+      >
         <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between gap-4 border-b border-[#EADBCD] bg-white px-6 py-4">
           <div className="min-w-0">
             <p className="mb-0.5 font-mono text-xs font-semibold text-muted-foreground">
@@ -339,9 +404,12 @@ const InquiryDrawer = ({
         <div className="flex shrink-0 gap-0 border-b border-[#EADBCD] bg-white px-6">
           {[
             { key: 'inquiry', label: 'Zapytanie' },
+            {
+              key: 'messages',
+              label: `Wiadomości (${inquiry.messages.length})`,
+            },
+            { key: 'files', label: `Pliki (${inquiry.files.length})` },
             { key: 'offers', label: `Oferty (${linkedOffers.length})` },
-            { key: 'history', label: 'Historia' },
-            { key: 'note', label: 'Notatka' },
           ].map((item) => (
             <button
               key={item.key}
@@ -361,40 +429,33 @@ const InquiryDrawer = ({
 
         <div className="flex-1 overflow-y-auto">
           {tab === 'inquiry' ? (
-            <div className="space-y-5 p-6">
-              <section className="rounded-xl border border-primary/15 bg-primary/5 p-4">
-                <div className="mb-2 flex items-center gap-2">
-                  <Sparkles className="size-4 text-primary" />
-                  <span className="text-xs font-bold uppercase tracking-wide text-primary">
-                    Podsumowanie AI
-                  </span>
-                </div>
-                <p className="text-sm leading-relaxed text-[#33251D]">
-                  Klient prosi o obsługę sprawy: {inquiry.title}. AI wykrywa
-                  status {statusLabels[inquiry.status].toLowerCase()}, priorytet{' '}
-                  {priorityLabels[inquiry.priority].toLowerCase()} i sugeruje
-                  przygotowanie odpowiedzi oraz szkicu oferty na bazie
-                  dotychczasowego cennika.
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Badge
-                    className="bg-orange-100 text-orange-700"
-                    label="Do weryfikacji"
-                  />
-                  <Badge
-                    className="bg-blue-100 text-blue-700"
-                    label={inquiry.source}
-                  />
-                  <Badge
-                    className="bg-purple-100 text-purple-700"
-                    label="Oferta AI"
-                  />
-                </div>
+            <div className="space-y-5 p-6 duration-200 animate-in fade-in-0 slide-in-from-bottom-2">
+              <section className="grid gap-3 md:grid-cols-2">
+                {[
+                  ['Klient', customerName],
+                  ['E-mail', customerEmail],
+                  ['Źródło', inquiry.source],
+                  ['Termin odpowiedzi', formatDate(inquiry.responseDueAt)],
+                  ['Termin realizacji', formatDate(inquiry.realizationDueAt)],
+                  ['Termin odbioru', formatDate(inquiry.pickupDueAt)],
+                ].map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="rounded-xl border border-[#EADBCD] bg-[#FFFDF9] p-4"
+                  >
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {label}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-[#33251D]">
+                      {value}
+                    </p>
+                  </div>
+                ))}
               </section>
 
               <section>
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Wiadomość klienta
+                  Opis zapytania
                 </p>
                 <div className="rounded-xl border border-[#EADBCD] bg-[#FFFDF9] p-4 text-sm leading-relaxed text-[#33251D]">
                   <div className="mb-3 flex items-center gap-2 border-b border-[#EADBCD] pb-3">
@@ -413,75 +474,135 @@ const InquiryDrawer = ({
                   {inquiry.description ? (
                     <p className="whitespace-pre-line">{inquiry.description}</p>
                   ) : (
-                    <p>
-                      Dzień dobry, proszę o przygotowanie oferty dla sprawy:
-                      {` ${inquiry.title}`}. Zależy nam na szybkim terminie
-                      odpowiedzi i jasnym harmonogramie dalszych kroków.
-                    </p>
+                    <p className="text-muted-foreground">Brak opisu.</p>
                   )}
                 </div>
               </section>
 
-              <section className="overflow-hidden rounded-xl border border-primary/20">
-                <div className="flex items-center justify-between border-b border-primary/15 bg-primary/5 px-4 py-2.5">
-                  <div className="flex items-center gap-2">
-                    <span className="flex size-5 items-center justify-center rounded bg-primary text-white">
-                      <Sparkles className="size-3" />
-                    </span>
-                    <span className="text-xs font-bold text-primary">
-                      AI przygotował szkic odpowiedzi - sprawdź przed wysłaniem
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="size-1.5 rounded-full bg-green-500" />
-                    <span className="text-[10px] font-semibold text-green-600">
-                      Gotowy
-                    </span>
-                  </div>
-                </div>
-                <div className="bg-white px-4 py-3">
-                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Szkic AI · możesz edytować
-                  </p>
-                  <textarea
-                    className="w-full resize-none bg-transparent text-sm leading-relaxed text-[#33251D] outline-none"
-                    rows={9}
-                    value={
-                      replyText ||
-                      `Dzień dobry,\n\nDziękujemy za przesłane zapytanie: ${inquiry.title}.\n\nPrzygotujemy szczegółową ofertę wraz z zakresem, harmonogramem i warunkami realizacji. W pierwszym kroku zweryfikujemy komplet danych oraz zaproponujemy wariant bazowy i rozszerzony.\n\nW razie potrzeby wrócimy z pytaniami doprecyzowującymi.\n\nZ poważaniem,\n${ownerName}`
-                    }
-                    onChange={(event) => setReplyText(event.target.value)}
-                  />
-                </div>
-                <div className="flex items-center justify-between border-t border-[#EADBCD] bg-[#FFFDF9] px-4 py-2.5">
-                  <div className="flex gap-2">
-                    <button className="inline-flex items-center gap-1 rounded-lg border border-[#EADBCD] bg-white px-2.5 py-1.5 text-xs text-muted-foreground transition hover:text-[#33251D]">
-                      <RefreshCw className="size-3" />
-                      Regeneruj
-                    </button>
-                    <button className="inline-flex items-center gap-1 rounded-lg border border-[#EADBCD] bg-white px-2.5 py-1.5 text-xs text-muted-foreground transition hover:text-[#33251D]">
-                      <Layers className="size-3" />
-                      Zmień ton
-                    </button>
-                  </div>
-                  <button className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-primary/90">
-                    <Send className="size-3" />
-                    Wyślij odpowiedź
-                  </button>
+              <section className="rounded-xl border border-[#EADBCD] p-4">
+                <h4 className="font-display text-sm font-bold text-[#33251D]">
+                  Historia statusów
+                </h4>
+                <div className="mt-4 space-y-3">
+                  {inquiry.statusChanges.map((change) => (
+                    <div key={change.id} className="flex items-center gap-3">
+                      <span className="size-2 rounded-full bg-primary" />
+                      <div>
+                        <p className="text-sm font-semibold text-[#33251D]">
+                          {change.fromStatus
+                            ? statusLabels[change.fromStatus]
+                            : '-'}{' '}
+                          → {statusLabels[change.toStatus]}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDate(change.changedAt)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  {inquiry.statusChanges.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      Brak historii statusów.
+                    </p>
+                  ) : null}
                 </div>
               </section>
             </div>
           ) : null}
 
+          {tab === 'messages' ? (
+            <div className="p-6 duration-200 animate-in fade-in-0 slide-in-from-bottom-2">
+              <div className="space-y-3">
+                {inquiry.messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className="rounded-xl border border-[#EADBCD] bg-white p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-[#33251D]">
+                          {message.subject ||
+                            directionLabels[message.direction]}
+                        </p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {message.senderEmail || '-'} →{' '}
+                          {message.recipientEmail || '-'}
+                        </p>
+                      </div>
+                      <Badge
+                        className="bg-slate-100 text-slate-600"
+                        label={directionLabels[message.direction]}
+                      />
+                    </div>
+                    <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-[#33251D]">
+                      {message.body}
+                    </p>
+                    <p className="mt-3 text-[10px] text-muted-foreground">
+                      {formatDate(message.sentAt ?? message.createdAt)}
+                    </p>
+                  </div>
+                ))}
+                {inquiry.messages.length === 0 ? (
+                  <p className="rounded-xl border border-[#EADBCD] p-4 text-sm text-muted-foreground">
+                    Brak wiadomości dla tego zapytania.
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          {tab === 'files' ? (
+            <div className="p-6 duration-200 animate-in fade-in-0 slide-in-from-bottom-2">
+              <div className="space-y-3">
+                {inquiry.files.map((file) => (
+                  <div
+                    key={file.id}
+                    className="flex items-start justify-between gap-4 rounded-xl border border-[#EADBCD] bg-white p-4"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-[#33251D]">
+                        {file.originalName}
+                      </p>
+                      <p className="mt-0.5 text-[10px] text-muted-foreground/70">
+                        {file.category || file.source} ·{' '}
+                        {(file.sizeBytes / 1024).toLocaleString('pl-PL', {
+                          maximumFractionDigits: 1,
+                        })}{' '}
+                        KB · {formatDate(file.createdAt)}
+                      </p>
+                      {file.description ? (
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          {file.description}
+                        </p>
+                      ) : null}
+                    </div>
+                    <a
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-[#EADBCD] px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-[#FAF5ED] hover:text-[#33251D]"
+                      href={downloadHref(file.downloadUrl)}
+                    >
+                      <Download className="size-3" />
+                      Pobierz
+                    </a>
+                  </div>
+                ))}
+                {inquiry.files.length === 0 ? (
+                  <p className="rounded-xl border border-[#EADBCD] p-4 text-sm text-muted-foreground">
+                    Brak plików dla tego zapytania.
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
           {tab === 'offers' ? (
-            <div className="p-6">
+            <div className="p-6 duration-200 animate-in fade-in-0 slide-in-from-bottom-2">
               <div className="mb-4 flex items-center justify-between gap-4">
                 <div>
                   <h3 className="font-display text-sm font-bold text-[#33251D]">
                     Oferty powiązane z zapytaniem
                   </h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Kliknij edycję, aby dopracować pozycje i wysłać ofertę.
+                    Numery, statusy, wartości i pozycje ofert.
                   </p>
                 </div>
                 <button className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-primary/90">
@@ -489,186 +610,151 @@ const InquiryDrawer = ({
                   Nowa oferta
                 </button>
               </div>
-              <div className="space-y-3">
-                {linkedOffers.map((offer) => (
-                  <OfferCard key={offer.id} offer={offer} />
-                ))}
-              </div>
-              <button className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#EADBCD] py-3 text-xs font-semibold text-muted-foreground transition hover:border-primary/40 hover:text-primary">
-                <Plus className="size-3" />
-                Utwórz kolejną wersję oferty
-              </button>
-            </div>
-          ) : null}
-
-          {tab === 'history' ? (
-            <div className="p-6">
-              <div className="relative space-y-0">
-                <div className="absolute inset-y-2 left-[9px] w-px bg-[#EADBCD]" />
-                {timeline.map((item) => (
-                  <div
-                    key={`${item.time}-${item.text}`}
-                    className="relative flex gap-3 pb-5"
-                  >
+              {offers.isLoading ? (
+                <div className="flex min-h-40 items-center justify-center">
+                  <Spinner />
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {linkedOffers.map((offer) => (
+                    <OfferCard key={offer.id} offer={offer} />
+                  ))}
+                  {linkedOffers.length === 0 ? (
+                    <p className="rounded-xl border border-[#EADBCD] p-4 text-sm text-muted-foreground">
+                      Brak ofert powiązanych z tym zapytaniem.
+                    </p>
+                  ) : null}
+                </div>
+              )}
+              <div className="mt-6 rounded-xl border border-[#EADBCD] p-4">
+                <h4 className="font-display text-sm font-bold text-[#33251D]">
+                  Notatki wewnętrzne
+                </h4>
+                <div className="mt-4 space-y-3">
+                  {inquiry.notes.map((note) => (
                     <div
-                      className={cn(
-                        'z-10 mt-0.5 flex size-[18px] shrink-0 items-center justify-center rounded-full',
-                        item.type === 'ai'
-                          ? 'bg-primary'
-                          : item.type === 'client'
-                            ? 'bg-green-500'
-                            : item.type === 'user'
-                              ? 'bg-blue-500'
-                              : 'bg-[#EADBCD]',
-                      )}
+                      key={note.id}
+                      className="border-b pb-3 last:border-b-0"
                     >
-                      {item.type === 'ai' ? (
-                        <Sparkles className="size-2.5 text-white" />
-                      ) : item.type === 'client' ? (
-                        <Users className="size-2.5 text-white" />
-                      ) : item.type === 'user' ? (
-                        <UserCheck className="size-2.5 text-white" />
-                      ) : (
-                        <Clock className="size-2.5 text-muted-foreground" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-[#33251D]">
-                        {item.actor}
+                      <p className="whitespace-pre-line text-sm text-[#33251D]">
+                        {note.body}
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.text}
-                      </p>
-                      <p className="mt-0.5 text-[10px] text-muted-foreground/70">
-                        {item.time}
+                      <p className="mt-2 text-[10px] text-muted-foreground">
+                        {note.author?.name || 'Zespół'} ·{' '}
+                        {formatDate(note.createdAt)}
                       </p>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          {tab === 'note' ? (
-            <div className="p-6">
-              <p className="mb-3 text-xs text-muted-foreground">
-                Notatka wewnętrzna - niewidoczna dla klienta.
-              </p>
-              <textarea
-                className="w-full resize-none rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-[#33251D] outline-none transition focus:border-yellow-400"
-                placeholder="Dodaj notatkę dla zespołu..."
-                rows={8}
-                value={note}
-                onChange={(event) => setNote(event.target.value)}
-              />
-              <div className="mt-2 flex justify-end">
-                <button className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white transition hover:bg-primary/90">
-                  Zapisz notatkę
-                </button>
+                  ))}
+                  {inquiry.notes.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      Brak notatek wewnętrznych.
+                    </p>
+                  ) : null}
+                </div>
               </div>
             </div>
           ) : null}
         </div>
-      </aside>
-    </div>
+      </DrawerContent>
+    </Drawer>
   );
 };
 
-type OfferPreview = {
-  id: string;
-  version: string;
-  author: string;
-  status: 'Szkic' | 'Wysłana' | 'Zaakceptowana';
-  amount: string;
-  validUntil: string;
+const directionLabels = {
+  inbound: 'Przychodząca',
+  outbound: 'Wychodząca',
+  internal: 'Wewnętrzna',
 };
 
-const OfferCard = ({ offer }: { offer: OfferPreview }) => (
+const offerStatusLabels = {
+  draft: 'Szkic',
+  sent: 'Wysłana',
+  accepted: 'Zaakceptowana',
+  rejected: 'Odrzucona',
+};
+
+const OfferCard = ({ offer }: { offer: Offer }) => (
   <div
     className={cn(
       'overflow-hidden rounded-xl border',
-      offer.author === 'AI Asystent' ? 'border-primary/20' : 'border-[#EADBCD]',
+      offer.status === 'draft' ? 'border-primary/20' : 'border-[#EADBCD]',
     )}
   >
     <div
       className={cn(
         'flex items-center justify-between gap-4 px-4 py-3',
-        offer.author === 'AI Asystent' ? 'bg-primary/5' : 'bg-[#FFFDF9]',
+        offer.status === 'draft' ? 'bg-primary/5' : 'bg-[#FFFDF9]',
       )}
     >
       <div className="flex items-center gap-2.5">
         <div
           className={cn(
             'flex size-8 shrink-0 items-center justify-center rounded-lg',
-            offer.author === 'AI Asystent'
+            offer.status === 'draft'
               ? 'bg-primary text-white'
               : 'bg-blue-100 text-blue-700',
           )}
         >
-          {offer.author === 'AI Asystent' ? (
-            <Sparkles className="size-4" />
-          ) : (
-            <UserCheck className="size-4" />
-          )}
+          <UserCheck className="size-4" />
         </div>
         <div>
           <div className="flex items-center gap-2">
             <span className="font-mono text-xs font-bold text-[#33251D]">
-              {offer.id}
+              {offer.number}
             </span>
             <span className="rounded bg-[#F3E7DA] px-1.5 py-0.5 text-[10px] font-bold text-primary">
-              {offer.version}
+              {offer.currency}
             </span>
-            {offer.author === 'AI Asystent' ? (
-              <span className="text-[10px] font-semibold text-primary">
-                Szkic AI
-              </span>
-            ) : null}
           </div>
           <p className="text-xs text-muted-foreground">
-            przez {offer.author} · ważna do {offer.validUntil}
+            przez {offer.owner?.name ?? 'Nieprzypisane'} · ważna do{' '}
+            {formatDate(offer.validUntil)}
           </p>
         </div>
       </div>
       <div className="flex items-center gap-3">
         <Badge
           className={
-            offer.status === 'Zaakceptowana'
+            offer.status === 'accepted'
               ? 'bg-green-100 text-green-700'
-              : offer.status === 'Wysłana'
+              : offer.status === 'sent'
                 ? 'bg-purple-100 text-purple-700'
-                : 'bg-gray-100 text-gray-600'
+                : offer.status === 'rejected'
+                  ? 'bg-red-100 text-red-700'
+                  : 'bg-gray-100 text-gray-600'
           }
-          label={offer.status}
+          label={offerStatusLabels[offer.status]}
         />
-        <span className="text-sm font-bold text-[#33251D]">{offer.amount}</span>
+        <span className="text-sm font-bold text-[#33251D]">
+          {formatMoney(offer.totalGrossCents)}
+        </span>
       </div>
     </div>
     <div className="bg-white px-4 py-3">
       <p className="mb-3 text-xs text-muted-foreground">
-        Oferta wygenerowana z zapytania i aktualnego cennika.
+        {offer.notes || offer.terms || 'Oferta powiązana z zapytaniem.'}
       </p>
       <div className="mb-3 overflow-hidden rounded-lg border border-[#EADBCD] bg-[#FFFDF9]">
         <table className="w-full text-xs">
           <tbody className="divide-y divide-[#EADBCD]">
-            {[
-              ['Analiza i projekt zakresu', '2 500 zl'],
-              ['Przygotowanie oferty i harmonogramu', '3 200 zl'],
-              ['Wsparcie wdrożeniowe', '1 400 zl'],
-            ].map(([name, amount]) => (
-              <tr key={name}>
-                <td className="px-3 py-1.5 text-muted-foreground">{name}</td>
+            {offer.items.slice(0, 3).map((item) => (
+              <tr key={item.id}>
+                <td className="px-3 py-1.5 text-muted-foreground">
+                  {item.name}
+                </td>
                 <td className="whitespace-nowrap px-3 py-1.5 text-right font-mono font-semibold text-[#33251D]">
-                  {amount}
+                  {formatMoney(item.grossCents)}
                 </td>
               </tr>
             ))}
             <tr className="bg-[#FAF5ED]">
               <td className="px-3 py-1.5 text-[10px] italic text-muted-foreground">
-                + kolejne pozycje w edytorze
+                {offer.items.length > 3
+                  ? `+ ${offer.items.length - 3} kolejne pozycje`
+                  : 'Razem'}
               </td>
               <td className="px-3 py-1.5 text-right font-mono font-bold text-[#33251D]">
-                {offer.amount}
+                {formatMoney(offer.totalGrossCents)}
               </td>
             </tr>
           </tbody>
@@ -679,9 +765,9 @@ const OfferCard = ({ offer }: { offer: OfferPreview }) => (
           <FileText className="size-3" />
           Edytuj ofertę
         </button>
-        {offer.status === 'Szkic' ? (
+        {offer.status === 'draft' ? (
           <button className="inline-flex items-center gap-1.5 rounded-lg border border-primary px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/5">
-            <Send className="size-3" />
+            <FileText className="size-3" />
             Wyślij do klienta
           </button>
         ) : null}
@@ -707,62 +793,6 @@ const Badge = ({ label, className }: { label: string; className: string }) => (
     {label}
   </span>
 );
-
-const buildLinkedOffers = (inquiry: Inquiry): OfferPreview[] => {
-  const base = [
-    {
-      id: `OF-${inquiry.id.slice(-6)}`,
-      version: 'v2',
-      author: inquiry.owner?.name ?? 'A. Nowak',
-      status: inquiry.status === 'accepted' ? 'Zaakceptowana' : 'Wysłana',
-      amount: '12 400 zl',
-      validUntil: formatDate(inquiry.responseDueAt),
-    },
-    {
-      id: `OF-${inquiry.id.slice(-6)}A`,
-      version: 'v1',
-      author: 'AI Asystent',
-      status: 'Szkic',
-      amount: '11 400 zl',
-      validUntil: formatDate(inquiry.responseDueAt),
-    },
-  ] satisfies OfferPreview[];
-
-  return inquiry.status === 'new' || inquiry.status === 'triage'
-    ? [base[1]]
-    : base;
-};
-
-const buildTimeline = (
-  inquiry: Inquiry,
-  customerName: string,
-  ownerName: string,
-) => [
-  {
-    time: formatDate(inquiry.createdAt),
-    actor: 'System',
-    text: 'Zapytanie zarejestrowane, AI wygenerowało podsumowanie',
-    type: 'system',
-  },
-  {
-    time: formatDate(inquiry.createdAt),
-    actor: 'AI Asystent',
-    text: 'Automatycznie przygotowano szkic odpowiedzi i propozycję oferty',
-    type: 'ai',
-  },
-  {
-    time: formatDate(inquiry.updatedAt),
-    actor: ownerName,
-    text: `Przejął zapytanie i ustawił priorytet ${priorityLabels[inquiry.priority]}`,
-    type: 'user',
-  },
-  {
-    time: formatDate(inquiry.responseDueAt),
-    actor: customerName,
-    text: 'Oczekuje na odpowiedź zespołu lub decyzję dotyczącą oferty',
-    type: 'client',
-  },
-];
 
 const initials = (value: string) =>
   value

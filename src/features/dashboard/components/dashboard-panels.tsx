@@ -37,9 +37,10 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
 import { Spinner } from '@/components/ui/spinner';
+import { paths } from '@/config/paths';
 import {
   AdminDashboard,
   CompanyDashboard,
@@ -124,16 +125,6 @@ type DemoOffer = {
   author: string;
 };
 
-type DemoInquiry = {
-  id: string;
-  client: string;
-  subject: string;
-  date: string;
-  status: string;
-  priority: string;
-  owner: string;
-};
-
 type DemoClient = {
   id: string;
   name: string;
@@ -209,63 +200,6 @@ const priorityClasses: Record<string, string> = {
   Normalny: 'bg-slate-100 text-slate-600',
   Niski: 'bg-gray-100 text-gray-500',
 };
-
-const demoInquiries: DemoInquiry[] = [
-  {
-    id: 'ZAP-2026-089',
-    client: 'Techno Systems Sp. z o.o.',
-    subject: 'Wycena integracji API z ERP',
-    date: '22 lip 2026',
-    status: 'Nowe',
-    priority: 'Pilny',
-    owner: 'A. Nowak',
-  },
-  {
-    id: 'ZAP-2026-088',
-    client: 'BuildCraft Polska',
-    subject: 'Oferta na dostawę materiałów Q3',
-    date: '21 lip 2026',
-    status: 'W toku',
-    priority: 'Wysoki',
-    owner: 'K. Wiśniewska',
-  },
-  {
-    id: 'ZAP-2026-087',
-    client: 'Marta Kowalska',
-    subject: 'Projekt strony internetowej',
-    date: '21 lip 2026',
-    status: 'Oczekuje',
-    priority: 'Normalny',
-    owner: 'P. Zając',
-  },
-  {
-    id: 'ZAP-2026-086',
-    client: 'Logis Trans S.A.',
-    subject: 'Usługi transportowe - kontrakt roczny',
-    date: '20 lip 2026',
-    status: 'Wysłano ofertę',
-    priority: 'Normalny',
-    owner: 'A. Nowak',
-  },
-  {
-    id: 'ZAP-2026-085',
-    client: 'EkoFarm sp. z o.o.',
-    subject: 'Sprzęt rolniczy - wycena 12 pozycji',
-    date: '19 lip 2026',
-    status: 'Zaakceptowano',
-    priority: 'Niski',
-    owner: 'K. Wiśniewska',
-  },
-  {
-    id: 'ZAP-2026-084',
-    client: 'Studio Kreatywne ART',
-    subject: 'Kampania reklamowa - oferta',
-    date: '18 lip 2026',
-    status: 'Zamknięte',
-    priority: 'Normalny',
-    owner: 'P. Zając',
-  },
-];
 
 const demoOffers: DemoOffer[] = [
   {
@@ -1210,14 +1144,10 @@ export function DashboardError({ title }: { title: string }) {
 }
 
 export function CompanyDashboardPanel({ data }: { data: CompanyDashboard }) {
+  const navigate = useNavigate();
   const [active, setActive] = useState<ClientTab>('overview');
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState('Wszystkie');
   const [selectedThread, setSelectedThread] = useState(demoThreads[0]?.id ?? 0);
   const [selectedItem, setSelectedItem] = useState<DashboardItem | null>(null);
-  const [selectedInquiry, setSelectedInquiry] = useState<DemoInquiry | null>(
-    null,
-  );
   const [products, setProducts] = useState(demoProducts);
   const [catalogCategory, setCatalogCategory] = useState<number | 'all'>('all');
   const [catalogQuery, setCatalogQuery] = useState('');
@@ -1259,20 +1189,6 @@ export function CompanyDashboardPanel({ data }: { data: CompanyDashboard }) {
     ],
     [data.attentionItems, data.tasksToday, data.upcomingDeadlines],
   );
-
-  const visibleInquiries = useMemo(() => {
-    const normalized = query.trim().toLocaleLowerCase('pl-PL');
-
-    return demoInquiries.filter((inquiry) => {
-      const matchesFilter = filter === 'Wszystkie' || inquiry.status === filter;
-      const searchable =
-        `${inquiry.id} ${inquiry.client} ${inquiry.subject} ${inquiry.owner}`.toLocaleLowerCase(
-          'pl-PL',
-        );
-
-      return matchesFilter && (!normalized || searchable.includes(normalized));
-    });
-  }, [filter, query]);
 
   const activeThread =
     demoThreads.find((thread) => thread.id === selectedThread) ??
@@ -1454,159 +1370,84 @@ export function CompanyDashboardPanel({ data }: { data: CompanyDashboard }) {
                 Zarządzaj wszystkimi zapytaniami w jednym miejscu.
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                24 aktywne · 3 wymagają uwagi
+                {data.stats.activeInquiries} aktywnych spraw w kolejce zespołu
               </p>
             </div>
             <button
               className="hidden items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary/90 sm:inline-flex"
               type="button"
-              onClick={() => quickAction('Nowe zapytanie')}
+              onClick={() => navigate(paths.app.inquiries.getHref())}
             >
               <Plus className="size-4" />
               Nowe zapytanie
             </button>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <SearchBox
-              value={query}
-              placeholder="Szukaj zapytań, klientów..."
-              onChange={setQuery}
-            />
-            {[
-              'Wszystkie',
-              'Nowe',
-              'W toku',
-              'Oczekuje',
-              'Wysłano ofertę',
-              'Zaakceptowano',
-            ].map((item) => (
+          <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-primary">
+                  Zapytania gotowe do obsługi
+                </p>
+                <p className="mt-1 text-sm text-[#33251D]">
+                  Przejdź do kolejki, aby filtrować sprawy, dopisać odpowiedź i
+                  sprawdzić powiązane materiały.
+                </p>
+              </div>
               <button
-                key={item}
-                aria-pressed={filter === item}
-                className={cn(
-                  'rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
-                  filter === item
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'border border-[#EADBCD] bg-white text-muted-foreground hover:bg-[#FAF5ED] hover:text-[#33251D]',
-                )}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary/90"
                 type="button"
-                onClick={() => setFilter(item)}
+                onClick={() => navigate(paths.app.inquiries.getHref())}
               >
-                {item}
+                <ArrowUpRight className="size-4" />
+                Otwórz zapytania
               </button>
-            ))}
-          </div>
-          <div className="overflow-hidden rounded-xl border border-[#EADBCD] bg-white shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[#EADBCD] bg-[#FFFDF9]">
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground">
-                      Nr / Klient
-                    </th>
-                    <th className="hidden px-4 py-3 text-left text-xs font-semibold text-muted-foreground md:table-cell">
-                      Temat
-                    </th>
-                    <th className="hidden px-4 py-3 text-left text-xs font-semibold text-muted-foreground lg:table-cell">
-                      Data
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">
-                      Status
-                    </th>
-                    <th className="hidden px-4 py-3 text-left text-xs font-semibold text-muted-foreground md:table-cell">
-                      Priorytet
-                    </th>
-                    <th className="hidden px-4 py-3 text-left text-xs font-semibold text-muted-foreground lg:table-cell">
-                      Opiekun
-                    </th>
-                    <th className="px-4 py-3" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#EADBCD]">
-                  {visibleInquiries.map((inquiry) => (
-                    <tr
-                      key={inquiry.id}
-                      className="cursor-pointer transition-colors hover:bg-[#FFFDF9]"
-                      onClick={() => setSelectedInquiry(inquiry)}
-                    >
-                      <td className="px-6 py-4">
-                        <div className="font-mono text-xs font-semibold text-[#33251D]">
-                          {inquiry.id}
-                        </div>
-                        <div className="mt-0.5 text-xs text-muted-foreground">
-                          {inquiry.client}
-                        </div>
-                      </td>
-                      <td className="hidden max-w-[220px] p-4 text-xs text-[#33251D] md:table-cell">
-                        <span className="line-clamp-1">{inquiry.subject}</span>
-                      </td>
-                      <td className="hidden p-4 text-xs text-muted-foreground lg:table-cell">
-                        {inquiry.date}
-                      </td>
-                      <td className="p-4">
-                        <Badge
-                          label={inquiry.status}
-                          className={
-                            statusClasses[inquiry.status] ??
-                            'bg-gray-100 text-gray-600'
-                          }
-                        />
-                      </td>
-                      <td className="hidden p-4 md:table-cell">
-                        <Badge
-                          label={inquiry.priority}
-                          className={
-                            priorityClasses[inquiry.priority] ??
-                            'bg-gray-100 text-gray-600'
-                          }
-                        />
-                      </td>
-                      <td className="hidden p-4 text-xs text-muted-foreground lg:table-cell">
-                        {inquiry.owner}
-                      </td>
-                      <td
-                        className="p-4"
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        <div className="flex items-center gap-1">
-                          <button
-                            className="p-1 text-muted-foreground transition-colors hover:text-[#33251D]"
-                            type="button"
-                            onClick={() => setSelectedInquiry(inquiry)}
-                          >
-                            <Eye className="size-4" />
-                          </button>
-                          <button
-                            className="p-1 text-muted-foreground transition-colors hover:text-[#33251D]"
-                            type="button"
-                            onClick={() => {
-                              const offer =
-                                demoOffers.find(
-                                  (offer) => offer.client === inquiry.client,
-                                ) ?? demoOffers[0];
-
-                              quickAction(
-                                `Oferta ${offer.id} dla ${inquiry.id}`,
-                              );
-                            }}
-                          >
-                            <FileText className="size-4" />
-                          </button>
-                          <button
-                            className="p-1 text-muted-foreground transition-colors hover:text-[#33251D]"
-                            type="button"
-                            onClick={() => quickAction('Menu zapytania')}
-                          >
-                            <MoreHorizontal className="size-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           </div>
+          <section className="rounded-xl border border-[#EADBCD] bg-white shadow-sm">
+            <div className="border-b border-[#EADBCD] px-5 py-4">
+              <h3 className="font-display text-sm font-bold text-[#33251D]">
+                Zapytania wymagające uwagi
+              </h3>
+            </div>
+            <div className="divide-y divide-[#EADBCD]">
+              {allItems.filter((item) => item.type === 'inquiry').length ===
+              0 ? (
+                <p className="px-5 py-8 text-sm text-muted-foreground">
+                  Brak pilnych zapytań w dashboardzie.
+                </p>
+              ) : (
+                allItems
+                  .filter((item) => item.type === 'inquiry')
+                  .map((item) => (
+                    <button
+                      key={item.id}
+                      className="grid w-full grid-cols-[minmax(0,1.6fr)_120px_44px] items-center gap-4 px-5 py-4 text-left transition hover:bg-[#FFFDF9] max-md:grid-cols-1"
+                      type="button"
+                      onClick={() => navigate(item.href)}
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate font-mono text-xs font-semibold text-primary">
+                          {item.id.replace(/^inquiry-/, '')}
+                        </p>
+                        <p className="mt-0.5 truncate text-sm font-semibold text-[#33251D]">
+                          {item.title}
+                        </p>
+                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                          {item.customerName ?? 'Brak klienta'} · {item.label}
+                        </p>
+                      </div>
+                      <Badge
+                        label={item.tone === 'danger' ? 'Pilne' : item.status}
+                        className={toneClasses[item.tone]}
+                      />
+                      <span className="flex justify-end text-muted-foreground">
+                        <Eye className="size-4" />
+                      </span>
+                    </button>
+                  ))
+              )}
+            </div>
+          </section>
         </div>
       ) : null}
 
@@ -2715,122 +2556,6 @@ export function CompanyDashboardPanel({ data }: { data: CompanyDashboard }) {
               >
                 Otwórz szczegóły
               </Link>
-            </div>
-          </aside>
-        </div>
-      ) : null}
-
-      {selectedInquiry ? (
-        <div className="fixed inset-0 z-30 flex justify-end">
-          <button
-            aria-label="Zamknij szczegóły zapytania"
-            className="absolute inset-0 bg-black/30"
-            type="button"
-            onClick={() => setSelectedInquiry(null)}
-          />
-          <aside className="relative flex size-full max-w-2xl flex-col bg-white shadow-2xl">
-            <div className="flex items-start justify-between gap-4 border-b border-[#EADBCD] px-6 py-4">
-              <div>
-                <p className="font-mono text-xs font-semibold text-primary">
-                  {selectedInquiry.id}
-                </p>
-                <h3 className="mt-1 font-display text-lg font-bold text-[#33251D]">
-                  {selectedInquiry.subject}
-                </h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {selectedInquiry.client}
-                </p>
-              </div>
-              <button
-                className="rounded-md p-2 text-muted-foreground transition hover:bg-[#FAF5ED]"
-                type="button"
-                onClick={() => setSelectedInquiry(null)}
-              >
-                <X className="size-5" />
-              </button>
-            </div>
-            <div className="flex-1 space-y-5 overflow-y-auto p-6">
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-xl border border-[#EADBCD] p-4">
-                  <p className="text-xs text-muted-foreground">Status</p>
-                  <Badge
-                    label={selectedInquiry.status}
-                    className={cn(
-                      'mt-2',
-                      statusClasses[selectedInquiry.status],
-                    )}
-                  />
-                </div>
-                <div className="rounded-xl border border-[#EADBCD] p-4">
-                  <p className="text-xs text-muted-foreground">Priorytet</p>
-                  <Badge
-                    label={selectedInquiry.priority}
-                    className={cn(
-                      'mt-2',
-                      priorityClasses[selectedInquiry.priority],
-                    )}
-                  />
-                </div>
-                <div className="rounded-xl border border-[#EADBCD] p-4">
-                  <p className="text-xs text-muted-foreground">Opiekun</p>
-                  <p className="mt-2 text-sm font-semibold text-[#33251D]">
-                    {selectedInquiry.owner}
-                  </p>
-                </div>
-              </div>
-              <section className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-                <div className="flex items-start gap-3">
-                  <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" />
-                  <div>
-                    <p className="text-sm font-semibold text-primary">
-                      AI może przygotować szkic oferty
-                    </p>
-                    <p className="mt-1 text-sm text-[#33251D]">
-                      Układ i zachowanie są zgodne z referencją: zapytanie
-                      otwiera boczny szczegół, a szybkie akcje działają bez
-                      opuszczania tabeli.
-                    </p>
-                  </div>
-                </div>
-              </section>
-              <section className="rounded-xl border border-[#EADBCD] p-4">
-                <h4 className="font-display text-sm font-bold text-[#33251D]">
-                  Oś sprawy
-                </h4>
-                <div className="mt-4 space-y-3">
-                  {[
-                    ['Odebrano zapytanie', selectedInquiry.date],
-                    ['Rozpoznano klienta', selectedInquiry.client],
-                    ['Przypisano opiekuna', selectedInquiry.owner],
-                  ].map(([label, value]) => (
-                    <div key={label} className="flex items-center gap-3">
-                      <span className="size-2 rounded-full bg-primary" />
-                      <div>
-                        <p className="text-sm font-semibold text-[#33251D]">
-                          {label}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{value}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            </div>
-            <div className="flex flex-wrap justify-end gap-2 border-t border-[#EADBCD] p-4">
-              <button
-                className="rounded-lg border border-[#EADBCD] px-4 py-2 text-sm font-semibold text-muted-foreground transition hover:bg-[#FAF5ED]"
-                type="button"
-                onClick={() => quickAction('Wiadomość do klienta')}
-              >
-                Napisz wiadomość
-              </button>
-              <button
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary/90"
-                type="button"
-                onClick={() => quickAction('Szkic oferty')}
-              >
-                Utwórz ofertę
-              </button>
             </div>
           </aside>
         </div>

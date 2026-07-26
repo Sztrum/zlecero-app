@@ -1,7 +1,7 @@
 # AGENTS_PROJECT_RULES.md
 
 ## Version
-v2.5.0
+v2.7.0
 
 ## Scope
 Repository-specific rules for the Zlecero React application project initialized from the `bulletproof-react` approach.
@@ -91,6 +91,8 @@ Read documents in this exact order before implementation:
 - Prefer Radix/headless primitives, lucide icons, Tailwind utilities, and class composition helpers if the project is initialized from the Vite `bulletproof-react` stack.
 - Preserve the current Zlecero reference visual direction unless the user explicitly asks for a redesign: warm cream background `#FAF5ED`, dark brown structural surfaces `#33251D`, brick primary `#9C442D`, white product/dashboard cards, 8px default radius, restrained brown-tinted shadows, Inter body typography, Plus Jakarta Sans display typography, compact navigation, and dashboard-like product preview patterns.
 - Keep layout components in `src/components/layouts/**` or a similarly explicit shared location.
+- Dashboard application views must use the shared dashboard layout as the centering and width authority. Keep dashboard content centered in the available post-sidebar workspace with a full-width responsive container, and avoid route-level left-pinned `max-w-*` wrappers that waste horizontal space unless a deliberately narrow reading/form surface is required.
+- Dashboard modal, drawer, and expandable workflow surfaces must use shared animated UI primitives for open/close transitions and should add short content transition states for tab or panel changes. Avoid hand-built fixed overlays that appear or disappear abruptly.
 - Add Storybook stories for shared UI primitives when Storybook is present or introduced.
 - Keep feature-specific components inside the owning feature unless they become stable reusable primitives.
 

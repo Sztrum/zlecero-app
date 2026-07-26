@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## Version
-v1.0.0
+v1.1.0
 
 ## Scope
 Portable AI-agent execution, collaboration, git workflow, verification, and response rules for this repository.
@@ -91,6 +91,7 @@ These rules are mandatory for every task and are intended to be portable across 
 ## Verification Policy
 - Run every verification that is possible in the current workspace; do not ask the user to run checks the agent can run directly.
 - Reuse prior successful verification only when the covered inputs have not changed since that verification.
+- Before running tests or commands that use database reset/migration traits such as `RefreshDatabase`, `DatabaseMigrations`, `migrate:fresh`, or equivalent schema-destructive flows, verify that the command is isolated from the developer database through an explicit test database, sqlite `:memory:`, or another disposable database. If isolation is not confirmed, do not run the command; first add/fix safe test database configuration or ask the user for explicit approval when isolation cannot be established.
 - If frontend assets changed, run the repository production build verification documented in `AGENTS_PROJECT_RULES.md`.
 - If backend/domain logic changed, run the focused automated tests documented in `AGENTS_PROJECT_RULES.md`.
 - Ask the user to verify only steps requiring user-only access such as external login, 2FA, or external systems.
