@@ -1,4 +1,4 @@
-import Axios, { InternalAxiosRequestConfig } from 'axios';
+import Axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 import { useNotifications } from '@/components/ui/notifications';
 import { env } from '@/config/env';
@@ -6,6 +6,21 @@ import { env } from '@/config/env';
 import { authToken } from './auth-token';
 
 type ValidationErrors = Record<string, string | string[] | undefined>;
+type ApiErrorResponseData = {
+  message?: unknown;
+  errors?: unknown;
+  [key: string]: unknown;
+};
+
+const getApiErrorResponseData = (
+  data: unknown,
+): ApiErrorResponseData | null => {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    return null;
+  }
+
+  return data as ApiErrorResponseData;
+};
 
 const getFirstValidationError = (errors: unknown): string | null => {
   if (!errors || typeof errors !== 'object' || Array.isArray(errors)) {
@@ -19,6 +34,17 @@ const getFirstValidationError = (errors: unknown): string | null => {
   }
 
   return firstError ?? null;
+};
+
+const logLocalApiError = (error: AxiosError): void => {
+  if (!import.meta.env.DEV || !error.response) {
+    return;
+  }
+
+  console.error('API error response', {
+    status: error.response.status,
+    data: error.response.data,
+  });
 };
 
 function authRequestInterceptor(config: InternalAxiosRequestConfig) {
@@ -44,11 +70,16 @@ api.interceptors.response.use(
   (response) => {
     return response.data;
   },
-  (error) => {
+  (error: AxiosError) => {
+    const responseData = getApiErrorResponseData(error.response?.data);
     const message =
-      getFirstValidationError(error.response?.data?.errors) ||
-      error.response?.data?.message ||
+      getFirstValidationError(responseData?.errors) ||
+      (typeof responseData?.message === 'string'
+        ? responseData.message
+        : null) ||
       error.message;
+
+    logLocalApiError(error);
 
     useNotifications.getState().addNotification({
       type: 'error',
