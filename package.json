@@ -8,6 +8,7 @@
     "build": "tsc && vite build --base=/",
     "preview": "vite preview",
     "test": "vitest",
+    "test:real-flow": "VITE_APP_API_URL=http://127.0.0.1:8100/api/v1 VITE_APP_ENABLE_API_MOCKING=false vitest run --config vite.real-flow.config.ts",
     "prepare": "husky",
     "lint": "eslint src --ignore-path .gitignore",
     "check-types": "tsc --project tsconfig.json --pretty --noEmit",
