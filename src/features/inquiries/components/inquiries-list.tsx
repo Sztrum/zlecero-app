@@ -9,14 +9,21 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
+import { Button } from '@/components/ui/button';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
+import { Form, Textarea } from '@/components/ui/form';
 import { Spinner } from '@/components/ui/spinner';
 import { env } from '@/config/env';
 import { Inquiry, InquiryPriority, InquiryStatus, Offer } from '@/types/api';
 import { cn } from '@/utils/cn';
 import { formatMoney } from '@/utils/format-money';
 
-import { InquiryFilters, useInquiries } from '../api/inquiries';
+import {
+  InquiryFilters,
+  inquiryNoteSchema,
+  useAddInquiryNote,
+  useInquiries,
+} from '../api/inquiries';
 import { useInquiryOffers } from '../api/linked-offers';
 
 type InquiriesListProps = {
@@ -315,6 +322,7 @@ const InquiryDrawer = ({
     'inquiry',
   );
   const offers = useInquiryOffers(inquiry.id);
+  const addNote = useAddInquiryNote();
 
   const customerName = inquiry.customer?.displayName ?? 'Klient';
   const customerEmail = inquiry.customer?.email ?? '-';
@@ -651,6 +659,28 @@ const InquiryDrawer = ({
                     </p>
                   ) : null}
                 </div>
+                <Form
+                  schema={inquiryNoteSchema}
+                  options={{ defaultValues: { body: '' } }}
+                  onSubmit={(values) => {
+                    addNote.mutate({ inquiryId: inquiry.id, data: values });
+                  }}
+                  className="mt-5 space-y-3"
+                >
+                  {({ register, formState }) => (
+                    <>
+                      <Textarea
+                        label="Nowa notatka wewnętrzna"
+                        className="min-h-28 border-[#EADBCD] bg-[#FAF5ED] text-[#33251D] focus-visible:ring-primary/20"
+                        error={formState.errors['body']}
+                        registration={register('body')}
+                      />
+                      <Button isLoading={addNote.isPending} type="submit">
+                        Dodaj notatkę
+                      </Button>
+                    </>
+                  )}
+                </Form>
               </div>
             </div>
           ) : null}

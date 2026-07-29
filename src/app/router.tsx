@@ -1,7 +1,6 @@
 import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { Navigate, createBrowserRouter } from 'react-router';
-import { RouterProvider } from 'react-router/dom';
+import { Navigate, RouterProvider, createBrowserRouter } from 'react-router';
 
 import { paths } from '@/config/paths';
 import { ProtectedRoute } from '@/lib/auth';

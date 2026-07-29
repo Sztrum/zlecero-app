@@ -1,7 +1,7 @@
 # AGENTS_PROJECT_RULES.md
 
 ## Version
-v2.7.0
+v2.8.0
 
 ## Scope
 Repository-specific rules for the Zlecero React application project initialized from the `bulletproof-react` approach.
@@ -110,6 +110,7 @@ Read documents in this exact order before implementation:
 - For TypeScript or source changes, run type checking: `npm run check-types`.
 - For lint-sensitive source changes, run linting: `npm run lint`.
 - For frontend source changes, run tests: `npm test -- --run` with a focused target when available; otherwise run the full test script when feasible.
+- For real Laravel flow verification, use a dedicated Vitest config/setup that does not import the MSW server or `src/testing/test-utils`, set `VITE_APP_ENABLE_API_MOCKING=false`, and point `VITE_APP_API_URL` at a Laravel instance backed by a disposable database.
 - For production-affecting frontend changes, run the production build: `npm run build`.
 - For shared UI component changes with Storybook configured, run or build Storybook when practical.
 - If verification cannot be run because dependencies are not installed, a service is unavailable, or setup is incomplete, report the blocker and exact remediation.
