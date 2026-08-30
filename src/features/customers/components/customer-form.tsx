@@ -56,80 +56,80 @@ export const CustomerForm = ({ customer, onSaved }: CustomerFormProps) => {
       {({ register, formState }) => (
         <>
           <Select
-            label="Type"
+            label="Typ klienta"
             error={formState.errors['type']}
             registration={register('type')}
             options={[
-              { label: 'Company', value: 'company' },
-              { label: 'Individual', value: 'individual' },
+              { label: 'Firma', value: 'company' },
+              { label: 'Osoba prywatna', value: 'individual' },
             ]}
           />
           <Input
-            label="Display Name"
+            label="Nazwa wyświetlana"
             error={formState.errors['displayName']}
             registration={register('displayName')}
           />
           <Input
-            label="Company Name"
+            label="Nazwa firmy"
             error={formState.errors['companyName']}
             registration={register('companyName')}
           />
           <Input
-            label="Tax Number"
+            label="NIP"
             error={formState.errors['taxNumber']}
             registration={register('taxNumber')}
           />
           <Input
-            label="First Name"
+            label="Imię"
             error={formState.errors['firstName']}
             registration={register('firstName')}
           />
           <Input
-            label="Last Name"
+            label="Nazwisko"
             error={formState.errors['lastName']}
             registration={register('lastName')}
           />
           <Input
-            label="Email"
+            label="E-mail"
             type="email"
             error={formState.errors['email']}
             registration={register('email')}
           />
           <Input
-            label="Phone"
+            label="Telefon"
             error={formState.errors['phone']}
             registration={register('phone')}
           />
           <Input
-            label="Address"
+            label="Adres"
             error={formState.errors['addressLine']}
             registration={register('addressLine')}
           />
           <Input
-            label="Postal Code"
+            label="Kod pocztowy"
             error={formState.errors['postalCode']}
             registration={register('postalCode')}
           />
           <Input
-            label="City"
+            label="Miejscowość"
             error={formState.errors['city']}
             registration={register('city')}
           />
           <Input
-            label="Country Code"
+            label="Kod kraju"
             error={formState.errors['countryCode']}
             registration={register('countryCode')}
           />
           <div className="md:col-span-2">
             <Textarea
-              label="Notes"
+              label="Notatki"
               error={formState.errors['notes']}
               registration={register('notes')}
             />
           </div>
           <div className="md:col-span-2">
             <Button isLoading={isSaving} type="submit">
-              {isEditing ? 'Save Customer' : 'Create Customer'}
+              {isEditing ? 'Zapisz klienta' : 'Dodaj klienta'}
             </Button>
           </div>
         </>

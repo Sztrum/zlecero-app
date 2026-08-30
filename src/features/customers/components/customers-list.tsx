@@ -1,84 +1,186 @@
-import { Search } from 'lucide-react';
-import { useState } from 'react';
+import { Building2, Copy, User, Users } from 'lucide-react';
+import { useNavigate } from 'react-router';
 
-import { Button } from '@/components/ui/button';
-import { Link } from '@/components/ui/link';
+import { Badge } from '@/components/ui/badge';
+import { DataTable } from '@/components/ui/data-table';
+import { Spinner } from '@/components/ui/spinner';
+import { StatCard } from '@/components/ui/stat-card';
 import { paths } from '@/config/paths';
-import { Customer } from '@/types/api';
+import { Customer, CustomerType } from '@/types/api';
 
 import { useCustomers } from '../api/customers';
 
 type CustomersListProps = {
-  onCreate: () => void;
+  query?: string;
 };
 
-export const CustomersList = ({ onCreate }: CustomersListProps) => {
-  const [search, setSearch] = useState('');
-  const customers = useCustomers(search);
+export const customerTypeLabels: Record<CustomerType, string> = {
+  company: 'Firma',
+  individual: 'Osoba prywatna',
+};
+
+const typeClasses: Record<CustomerType, string> = {
+  company: 'bg-blue-100 text-blue-700',
+  individual: 'bg-slate-100 text-slate-600',
+};
+
+const initials = (displayName: string) =>
+  displayName
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toLocaleUpperCase('pl-PL');
+
+export const CustomersList = ({ query = '' }: CustomersListProps) => {
+  const customers = useCustomers(query.trim() || undefined);
+  const navigate = useNavigate();
+
+  if (customers.isLoading) {
+    return (
+      <div className="flex min-h-[320px] items-center justify-center rounded-xl border border-[#EADBCD] bg-white">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (customers.isError) {
+    return (
+      <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
+        Nie udało się pobrać listy klientów.
+      </div>
+    );
+  }
+
+  const items = customers.data ?? [];
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative max-w-md flex-1">
-          <Search className="pointer-events-none absolute left-3 top-2.5 size-4 text-gray-400" />
-          <input
-            className="h-9 w-full border bg-white pl-9 pr-3 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-900"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search customers"
-          />
-        </div>
-        <Button onClick={onCreate}>New Customer</Button>
-      </div>
-
-      <div className="overflow-hidden border bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b bg-gray-50 text-xs uppercase text-gray-500">
-            <tr>
-              <th className="px-4 py-3">Customer</th>
-              <th className="px-4 py-3">Contact</th>
-              <th className="px-4 py-3">Tax Number</th>
-              <th className="px-4 py-3">Duplicates</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {customers.data?.map((customer) => (
-              <CustomerRow key={customer.id} customer={customer} />
-            ))}
-            {customers.data?.length === 0 && (
-              <tr>
-                <td className="px-4 py-6 text-gray-500" colSpan={4}>
-                  No customers found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+    <div className="space-y-5">
+      <CustomersSummary customers={items} />
+      <DataTable
+        items={items}
+        getRowKey={(customer) => customer.id}
+        empty="Brak klientów dla wybranych filtrów."
+        onRowClick={(customer) =>
+          navigate(paths.app.customerDetail.getHref(customer.id))
+        }
+        columns={[
+          {
+            key: 'customer',
+            label: 'Klient',
+            render: (customer) => (
+              <div className="flex min-w-[240px] items-center gap-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                  {initials(customer.displayName)}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-[#33251D]">
+                    {customer.displayName}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {customer.companyName || '-'}
+                  </p>
+                </div>
+              </div>
+            ),
+          },
+          {
+            key: 'type',
+            label: 'Typ',
+            render: (customer) => (
+              <Badge
+                label={customerTypeLabels[customer.type]}
+                className={typeClasses[customer.type]}
+              />
+            ),
+          },
+          {
+            key: 'email',
+            label: 'E-mail',
+            className: 'hidden md:table-cell',
+            render: (customer) => (
+              <span className="text-xs text-muted-foreground">
+                {customer.email || '-'}
+              </span>
+            ),
+          },
+          {
+            key: 'phone',
+            label: 'Telefon',
+            className: 'hidden lg:table-cell',
+            render: (customer) => (
+              <span className="text-xs text-muted-foreground">
+                {customer.phone || '-'}
+              </span>
+            ),
+          },
+          {
+            key: 'taxNumber',
+            label: 'NIP',
+            className: 'hidden lg:table-cell',
+            render: (customer) => (
+              <span className="text-xs text-muted-foreground">
+                {customer.taxNumber || '-'}
+              </span>
+            ),
+          },
+          {
+            key: 'duplicates',
+            label: 'Duplikaty',
+            className: 'hidden md:table-cell',
+            render: (customer) =>
+              customer.potentialDuplicates.length > 0 ? (
+                <Badge
+                  label={`${customer.potentialDuplicates.length}`}
+                  className="bg-orange-100 text-orange-700"
+                />
+              ) : (
+                <span className="text-xs text-muted-foreground">-</span>
+              ),
+          },
+        ]}
+      />
     </div>
   );
 };
 
-const CustomerRow = ({ customer }: { customer: Customer }) => (
-  <tr>
-    <td className="px-4 py-3">
-      <Link
-        className="font-medium text-gray-900"
-        to={paths.app.customerDetail.getHref(customer.id)}
-      >
-        {customer.displayName}
-      </Link>
-      <div className="text-xs text-gray-500">{customer.type}</div>
-    </td>
-    <td className="px-4 py-3 text-gray-600">
-      <div>{customer.email || '-'}</div>
-      <div className="text-xs">{customer.phone || '-'}</div>
-    </td>
-    <td className="px-4 py-3 text-gray-600">{customer.taxNumber || '-'}</td>
-    <td className="px-4 py-3 text-gray-600">
-      {customer.potentialDuplicates.length > 0
-        ? customer.potentialDuplicates.length
-        : '-'}
-    </td>
-  </tr>
-);
+const CustomersSummary = ({ customers }: { customers: Customer[] }) => {
+  const companies = customers.filter(
+    (customer) => customer.type === 'company',
+  ).length;
+  const individuals = customers.length - companies;
+  const duplicates = customers.filter(
+    (customer) => customer.potentialDuplicates.length > 0,
+  ).length;
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <StatCard
+        icon={Users}
+        label="Klienci na liście"
+        value={`${customers.length}`}
+        iconColor="bg-primary/10 text-primary"
+      />
+      <StatCard
+        icon={Building2}
+        label="Firmy"
+        value={`${companies}`}
+        iconColor="bg-blue-50 text-blue-600"
+      />
+      <StatCard
+        icon={User}
+        label="Osoby prywatne"
+        value={`${individuals}`}
+        iconColor="bg-slate-100 text-slate-600"
+      />
+      <StatCard
+        icon={Copy}
+        label="Możliwe duplikaty"
+        value={`${duplicates}`}
+        iconColor="bg-orange-50 text-orange-600"
+        valueColor={duplicates > 0 ? 'text-orange-600' : 'text-[#33251D]'}
+      />
+    </div>
+  );
+};
