@@ -47,7 +47,7 @@ const emptyItem = () => ({
   name: '',
   description: '',
   quantity: '1',
-  unit: 'pcs',
+  unit: 'szt.',
   unitPriceCents: 0,
   taxRate: '23',
 });
@@ -93,7 +93,7 @@ export const OfferForm = ({ offer, onSaved }: OfferFormProps) => {
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
         <Select
-          label="Inquiry"
+          label="Zapytanie"
           defaultValue={values.inquiryId}
           registration={{
             name: 'inquiryId',
@@ -103,7 +103,7 @@ export const OfferForm = ({ offer, onSaved }: OfferFormProps) => {
             },
           }}
           options={[
-            { label: 'Select inquiry', value: '' },
+            { label: 'Wybierz zapytanie', value: '' },
             ...(inquiries.data || []).map((inquiry) => ({
               label: inquiry.title,
               value: inquiry.id,
@@ -111,21 +111,21 @@ export const OfferForm = ({ offer, onSaved }: OfferFormProps) => {
           ]}
         />
         <Input
-          label="Number"
+          label="Numer"
           value={values.number}
           disabled={!isDraft}
           onChange={(event) => update('number', event.target.value)}
           registration={{ name: 'number' }}
         />
         <Input
-          label="Currency"
+          label="Waluta"
           value={values.currency}
           disabled={!isDraft}
           onChange={(event) => update('currency', event.target.value)}
           registration={{ name: 'currency' }}
         />
         <Input
-          label="Issue Date"
+          label="Data wystawienia"
           type="date"
           value={values.issueDate}
           disabled={!isDraft}
@@ -133,7 +133,7 @@ export const OfferForm = ({ offer, onSaved }: OfferFormProps) => {
           registration={{ name: 'issueDate' }}
         />
         <Input
-          label="Valid Until"
+          label="Ważna do"
           type="date"
           value={values.validUntil}
           disabled={!isDraft}
@@ -141,7 +141,7 @@ export const OfferForm = ({ offer, onSaved }: OfferFormProps) => {
           registration={{ name: 'validUntil' }}
         />
         <Input
-          label="Payment Days"
+          label="Termin płatności (dni)"
           type="number"
           value={values.paymentDueDays}
           disabled={!isDraft}
@@ -151,7 +151,7 @@ export const OfferForm = ({ offer, onSaved }: OfferFormProps) => {
           registration={{ name: 'paymentDueDays' }}
         />
         <Input
-          label="Delivery Cost Cents"
+          label="Koszt dostawy (gr)"
           type="number"
           value={values.deliveryCostCents}
           disabled={!isDraft}
@@ -161,7 +161,7 @@ export const OfferForm = ({ offer, onSaved }: OfferFormProps) => {
           registration={{ name: 'deliveryCostCents' }}
         />
         <Select
-          label="Discount"
+          label="Rabat"
           defaultValue={values.discountType}
           registration={{
             name: 'discountType',
@@ -174,20 +174,20 @@ export const OfferForm = ({ offer, onSaved }: OfferFormProps) => {
             },
           }}
           options={[
-            { label: 'None', value: '' },
-            { label: 'Percent', value: 'percent' },
-            { label: 'Amount', value: 'amount' },
+            { label: 'Brak', value: '' },
+            { label: 'Procentowy', value: 'percent' },
+            { label: 'Kwotowy', value: 'amount' },
           ]}
         />
         <Input
-          label="Discount Value"
+          label="Wartość rabatu"
           value={values.discountValue}
           disabled={!isDraft}
           onChange={(event) => update('discountValue', event.target.value)}
           registration={{ name: 'discountValue' }}
         />
         <Input
-          label="Deposit Percent"
+          label="Zaliczka (%)"
           value={values.depositPercent}
           disabled={!isDraft}
           onChange={(event) => update('depositPercent', event.target.value)}
@@ -195,7 +195,7 @@ export const OfferForm = ({ offer, onSaved }: OfferFormProps) => {
         />
         <div className="md:col-span-3">
           <Textarea
-            label="Terms"
+            label="Warunki handlowe"
             value={values.terms}
             disabled={!isDraft}
             onChange={(event) => update('terms', event.target.value)}
@@ -204,7 +204,7 @@ export const OfferForm = ({ offer, onSaved }: OfferFormProps) => {
         </div>
         <div className="md:col-span-3">
           <Textarea
-            label="Notes"
+            label="Notatki"
             value={values.notes}
             disabled={!isDraft}
             onChange={(event) => update('notes', event.target.value)}
@@ -215,9 +215,12 @@ export const OfferForm = ({ offer, onSaved }: OfferFormProps) => {
 
       <div className="space-y-3">
         {values.items.map((item, index) => (
-          <div key={index} className="grid gap-3 border p-3 md:grid-cols-6">
+          <div
+            key={index}
+            className="grid gap-3 rounded-xl border border-[#EADBCD] bg-white p-4 md:grid-cols-6"
+          >
             <Input
-              label="Name"
+              label="Nazwa"
               value={item.name}
               disabled={!isDraft}
               onChange={(event) =>
@@ -226,7 +229,7 @@ export const OfferForm = ({ offer, onSaved }: OfferFormProps) => {
               registration={{ name: `items.${index}.name` }}
             />
             <Input
-              label="Quantity"
+              label="Ilość"
               value={item.quantity}
               disabled={!isDraft}
               onChange={(event) =>
@@ -235,7 +238,7 @@ export const OfferForm = ({ offer, onSaved }: OfferFormProps) => {
               registration={{ name: `items.${index}.quantity` }}
             />
             <Input
-              label="Unit"
+              label="Jednostka"
               value={item.unit}
               disabled={!isDraft}
               onChange={(event) =>
@@ -244,7 +247,7 @@ export const OfferForm = ({ offer, onSaved }: OfferFormProps) => {
               registration={{ name: `items.${index}.unit` }}
             />
             <Input
-              label="Unit Price Cents"
+              label="Cena jedn. (gr)"
               type="number"
               value={item.unitPriceCents}
               disabled={!isDraft}
@@ -254,7 +257,7 @@ export const OfferForm = ({ offer, onSaved }: OfferFormProps) => {
               registration={{ name: `items.${index}.unitPriceCents` }}
             />
             <Input
-              label="Tax Rate"
+              label="Stawka VAT"
               value={item.taxRate}
               disabled={!isDraft}
               onChange={(event) =>
@@ -274,12 +277,12 @@ export const OfferForm = ({ offer, onSaved }: OfferFormProps) => {
                   )
                 }
               >
-                Remove
+                Usuń
               </Button>
             </div>
             <div className="md:col-span-6">
               <Textarea
-                label="Description"
+                label="Opis"
                 value={item.description}
                 disabled={!isDraft}
                 onChange={(event) =>
@@ -299,10 +302,10 @@ export const OfferForm = ({ offer, onSaved }: OfferFormProps) => {
             variant="outline"
             onClick={() => update('items', [...values.items, emptyItem()])}
           >
-            Add Item
+            Dodaj pozycję
           </Button>
           <Button type="button" isLoading={isSaving} onClick={save}>
-            {offer ? 'Save Offer' : 'Create Offer'}
+            {offer ? 'Zapisz ofertę' : 'Utwórz ofertę'}
           </Button>
         </div>
       )}

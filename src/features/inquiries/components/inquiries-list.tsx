@@ -16,6 +16,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { env } from '@/config/env';
 import { Inquiry, InquiryPriority, InquiryStatus, Offer } from '@/types/api';
 import { cn } from '@/utils/cn';
+import { formatDate } from '@/utils/format-date';
 import { formatMoney } from '@/utils/format-money';
 
 import {
@@ -853,15 +854,3 @@ const PriorityLabel = ({ priority }: { priority: InquiryPriority }) => (
     {priorityLabels[priority]}
   </span>
 );
-
-const formatDate = (value: number | string | null) => {
-  if (!value) {
-    return '-';
-  }
-
-  return new Intl.DateTimeFormat('pl-PL', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value));
-};

@@ -41,3 +41,7 @@ mocked-db.json
 
 # IDE
 .idea/
+
+# agent docs (local only)
+AGENTS*.md
+/docs/

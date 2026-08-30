@@ -48,31 +48,34 @@ module.exports = {
           {
             zones: [
               // disables cross-feature imports:
-              // eg. src/features/discussions should not import from src/features/comments, etc.
+              // eg. src/features/dashboard should not import from src/features/offers, etc.
+              // `inquiries` and `offers` are intentionally missing here: their form
+              // components still compose other features directly. Add their zones once
+              // that composition is moved up to src/app/**.
               {
                 target: './src/features/auth',
                 from: './src/features',
                 except: ['./auth'],
               },
               {
-                target: './src/features/comments',
+                target: './src/features/company',
                 from: './src/features',
-                except: ['./comments'],
+                except: ['./company'],
               },
               {
-                target: './src/features/discussions',
+                target: './src/features/customers',
                 from: './src/features',
-                except: ['./discussions'],
+                except: ['./customers'],
               },
               {
-                target: './src/features/teams',
+                target: './src/features/dashboard',
                 from: './src/features',
-                except: ['./teams'],
+                except: ['./dashboard'],
               },
               {
-                target: './src/features/users',
+                target: './src/features/orders',
                 from: './src/features',
-                except: ['./users'],
+                except: ['./orders'],
               },
               // enforce unidirectional codebase:
 
